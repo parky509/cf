@@ -837,8 +837,9 @@ var cfiSelectedDebtorId = <?php echo $selected_debtor ? (int) $selected_debtor->
 
 function cfiFormatDebt(value) {
     var amount = parseFloat(value) || 0;
-    if (amount.toLocaleString) {
-        return '₦' + amount.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (amount.toLocaleString && typeof Intl !== 'undefined' && Intl.NumberFormat) {
+        var locale = Intl.NumberFormat.supportedLocalesOf(['en-NG']).length ? 'en-NG' : 'en-US';
+        return '₦' + amount.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
     return '₦' + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
