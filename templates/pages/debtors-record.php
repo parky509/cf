@@ -837,7 +837,10 @@ var cfiSelectedDebtorId = <?php echo $selected_debtor ? (int) $selected_debtor->
 
 function cfiFormatDebt(value) {
     var amount = parseFloat(value) || 0;
-    return '₦' + amount.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (amount.toLocaleString) {
+        return '₦' + amount.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    return '₦' + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
 function cfiApplyDebtorBalances(balances) {
@@ -885,7 +888,7 @@ function cfiRefreshDebtorBalances() {
         method: 'POST',
         body: formData,
         credentials: 'same-origin',
-        cache: 'no-store'
+        cache: 'no-cache'
     })
     .then(function(response) {
         return response.json();

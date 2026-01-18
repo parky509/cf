@@ -508,25 +508,23 @@ class CFI_Ajax {
         global $wpdb;
         $debtors_table = $wpdb->prefix . 'cfi_debtors';
         $trans_table = $wpdb->prefix . 'cfi_debtor_transactions';
-        if (!preg_match('/^[A-Za-z0-9_]+$/', $debtors_table) || !preg_match('/^[A-Za-z0-9_]+$/', $trans_table)) {
+        if ($debtors_table !== $wpdb->prefix . 'cfi_debtors' || $trans_table !== $wpdb->prefix . 'cfi_debtor_transactions') {
             wp_send_json_error(array('message' => __('Invalid table name', 'chinemerem-foods')));
         }
-        $safe_debtors_table = esc_sql($debtors_table);
-        $safe_trans_table = esc_sql($trans_table);
         
         $latest_debt_table = "(
             SELECT dt.debtor_id, dt.balance_after
-            FROM `{$safe_trans_table}` dt
+            FROM `{$trans_table}` dt
             INNER JOIN (
                 SELECT debtor_id, MAX(id) AS max_id
-                FROM `{$safe_trans_table}`
+                FROM `{$trans_table}`
                 GROUP BY debtor_id
             ) latest ON latest.max_id = dt.id
         )";
         
         $rows = $wpdb->get_results(
             "SELECT d.id, COALESCE(latest.balance_after, d.total_debt) AS balance
-            FROM `{$safe_debtors_table}` d
+            FROM `{$debtors_table}` d
             LEFT JOIN {$latest_debt_table} AS latest ON latest.debtor_id = d.id
             WHERE d.status = 'active'"
         );
