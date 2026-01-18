@@ -861,7 +861,11 @@ window.addEventListener('pageshow', function(event) {
     if (window.performance && typeof window.performance.getEntriesByType === 'function') {
         navEntry = window.performance.getEntriesByType('navigation')[0];
     }
-    if (event.persisted || (navEntry && navEntry.type === 'back_forward')) {
+    var isBackForward = false;
+    if (navEntry && typeof navEntry.type === 'string') {
+        isBackForward = navEntry.type === 'back_forward' || navEntry.type === 'back-forward';
+    }
+    if (event.persisted || isBackForward) {
         window.location.reload();
     }
 });
