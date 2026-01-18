@@ -385,7 +385,8 @@ class CFI_Ajax {
         
         $order_time = $order->order_time;
         if (!empty($order->order_date) && !empty($order->order_time)) {
-            $date_time = DateTime::createFromFormat('Y-m-d H:i:s', $order->order_date . ' ' . $order->order_time, wp_timezone());
+            $format = strlen($order->order_time) > 5 ? 'Y-m-d H:i:s' : 'Y-m-d H:i';
+            $date_time = DateTime::createFromFormat($format, $order->order_date . ' ' . $order->order_time, wp_timezone());
             if ($date_time) {
                 $order_time = $date_time->format('g:i A');
             }
