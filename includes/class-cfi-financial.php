@@ -429,16 +429,16 @@ class CFI_Financial {
                 break;
         }
 
-        $start_display = $start_date;
-        $end_display = $end_date;
-        $start_object = DateTimeImmutable::createFromFormat('Y-m-d', $start_date, $timezone);
-        if ($start_object instanceof DateTimeImmutable) {
-            $start_display = wp_date('M j, Y', $start_object->getTimestamp(), $timezone);
-        }
-        $end_object = DateTimeImmutable::createFromFormat('Y-m-d', $end_date, $timezone);
-        if ($end_object instanceof DateTimeImmutable) {
-            $end_display = wp_date('M j, Y', $end_object->getTimestamp(), $timezone);
-        }
+        $format_display_date = static function($date) use ($timezone) {
+            $date_object = DateTimeImmutable::createFromFormat('Y-m-d', $date, $timezone);
+            if ($date_object instanceof DateTimeImmutable) {
+                return wp_date('M j, Y', $date_object->getTimestamp(), $timezone);
+            }
+            return $date;
+        };
+
+        $start_display = $format_display_date($start_date);
+        $end_display = $format_display_date($end_date);
 
         return array(
             'period' => $period,
@@ -539,6 +539,12 @@ class CFI_Financial {
                 $end_date
             )
         );
+
+        $orders = $orders ?: (object) array();
+        $debtors = $debtors ?: (object) array();
+        $expenses = $expenses ?: (object) array();
+        $transfers = $transfers ?: (object) array();
+        $cashout = $cashout ?: (object) array();
 
         return array(
             'range' => $range,

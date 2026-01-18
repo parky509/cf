@@ -298,12 +298,17 @@ $format_number = function($value) {
                 if (typeof CFI !== 'undefined' && CFI.utils && CFI.utils.formatCurrency) {
                     return CFI.utils.formatCurrency(numeric);
                 }
-                return '₦' + numeric.toFixed(2);
+                return numeric.toLocaleString('en-NG', {
+                    style: 'currency',
+                    currency: 'NGN',
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
             }
             if (typeof CFI !== 'undefined' && CFI.utils && CFI.utils.formatNumber) {
                 return CFI.utils.formatNumber(numeric);
             }
-            return numeric.toLocaleString('en-NG');
+            return numeric.toLocaleString('en-NG', { maximumFractionDigits: 0 });
         }
 
         function updateSummary(summary) {
