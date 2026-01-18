@@ -679,7 +679,7 @@ $page_load_id = time() . '_' . mt_rand(100000, 999999);
     var nonce = '<?php echo wp_create_nonce('cfi_nonce'); ?>';
     var summaryDate = '<?php echo esc_js($today); ?>';
     var summaryContainer = document.querySelector('.cfi-financial-container');
-    var refreshToken = 0;
+    var refreshToken = null;
     
     function setSummaryLoading(isLoading) {
         if (!summaryContainer) {
@@ -739,7 +739,8 @@ $page_load_id = time() . '_' . mt_rand(100000, 999999);
     }
     
     function refreshSummary(options) {
-        var requestId = ++refreshToken;
+        var requestId = Date.now().toString(36) + Math.random().toString(36).slice(2);
+        refreshToken = requestId;
         var showLoading = options && options.showLoading;
         if (showLoading) {
             setSummaryLoading(true);

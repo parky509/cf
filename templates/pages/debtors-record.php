@@ -857,7 +857,10 @@ async function printToBluetoothPrinter(text) {
 if(window.history.replaceState)window.history.replaceState(null,null,window.location.href);
 
 window.addEventListener('pageshow', function(event) {
-    var navEntry = performance.getEntriesByType('navigation')[0];
+    var navEntry = null;
+    if (window.performance && typeof window.performance.getEntriesByType === 'function') {
+        navEntry = window.performance.getEntriesByType('navigation')[0];
+    }
     if (event.persisted || (navEntry && navEntry.type === 'back_forward')) {
         window.location.reload();
     }
