@@ -25,11 +25,14 @@ if (!function_exists('cfi_format_receipt_time')) {
             $timezone = new DateTimeZone('UTC');
         }
         $date_time = DateTime::createFromFormat($date_format . ' ' . $time_format, trim($date . ' ' . $time), $timezone);
-        if ($date_time) {
+        if ($date_time instanceof DateTime) {
             return $date_time->format('g:i A');
         }
         $time_only = DateTime::createFromFormat($time_format, trim($time), $timezone);
-        return $time_only ? $time_only->format('g:i A') : $time;
+        if ($time_only instanceof DateTime) {
+            return $time_only->format('g:i A');
+        }
+        return $time;
     }
 }
 
