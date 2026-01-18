@@ -526,7 +526,9 @@ document.querySelectorAll('input[type="number"]').forEach(function(i){i.addEvent
 </div>
 </form>
 <script>
-var debt=<?php echo floatval($selected_debtor->display_debt); ?>;
+window.cfiDebtorState = window.cfiDebtorState || {};
+window.cfiDebtorState.debt = <?php echo floatval($selected_debtor->display_debt); ?>;
+var debt = window.cfiDebtorState.debt;
 function togglePay(el){
     el.classList.toggle('selected');
     var m=el.dataset.method;
@@ -863,8 +865,11 @@ function cfiApplyDebtorBalances(balances) {
         }
         var balanceValue = parseFloat(balances[debtorId]) || 0;
         el.textContent = cfiFormatDebt(balanceValue);
-        if (cfiSelectedDebtorId && Number(debtorId) === Number(cfiSelectedDebtorId) && typeof debt !== 'undefined') {
-            debt = balanceValue;
+        if (cfiSelectedDebtorId && Number(debtorId) === Number(cfiSelectedDebtorId) && window.cfiDebtorState) {
+            window.cfiDebtorState.debt = balanceValue;
+            if (typeof debt !== 'undefined') {
+                debt = balanceValue;
+            }
             if (typeof updatePayTotal === 'function') {
                 updatePayTotal();
             }
@@ -890,7 +895,10 @@ function cfiRefreshDebtorBalances() {
             cfiApplyDebtorBalances(data.data.balances);
         }
     })
-    .catch(function() {
+    .catch(function(error) {
+        if (window.console && console.warn) {
+            console.warn('CFI debtor balance refresh failed', error);
+        }
         return null;
     });
 }
@@ -975,7 +983,7 @@ window.addEventListener('pageshow', function(event) {
     // Some browsers report back_forward when restoring from bfcache.
     var isBackForward = navEntry && navEntry.type === 'back_forward';
     if (event.persisted || isBackForward) {
-        window.location.reload();
+        cfiRefreshDebtorBalances();
     }
 });
 </script>

@@ -508,6 +508,9 @@ class CFI_Ajax {
         global $wpdb;
         $debtors_table = $wpdb->prefix . 'cfi_debtors';
         $trans_table = $wpdb->prefix . 'cfi_debtor_transactions';
+        if (!preg_match('/^[A-Za-z0-9_]+$/', $debtors_table) || !preg_match('/^[A-Za-z0-9_]+$/', $trans_table)) {
+            wp_send_json_error(array('message' => __('Invalid table name', 'chinemerem-foods')));
+        }
         $safe_debtors_table = esc_sql($debtors_table);
         $safe_trans_table = esc_sql($trans_table);
         
