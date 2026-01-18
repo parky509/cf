@@ -236,13 +236,14 @@ modal.classList.add('active');
 fetch('<?php echo admin_url('admin-ajax.php'); ?>?action=cfi_get_order_details&order_id='+id)
 .then(function(r){return r.json()})
 .then(function(d){
-if(d.success){var o=d.data,h='<div>';
-h+='<p style="margin:0 0 0.5rem"><strong>Order #:</strong> '+(o.order_number||'N/A')+'</p>';
-h+='<p style="margin:0 0 0.5rem"><strong>Date:</strong> '+(o.order_date||'N/A')+'</p>';
-h+='<p style="margin:0 0 1rem"><strong>Customer:</strong> '+(o.customer_name||'N/A')+'</p>';
-if(o.items&&o.items.length>0){h+='<div style="margin:1rem 0">';h+='<div class="order-item" style="font-weight:600;background:#f1f5f9;padding:0.5rem;border-radius:4px"><span>Item</span><span>Qty</span><span>Amount</span></div>';
-o.items.forEach(function(i){h+='<div class="order-item"><span>'+i.product_name+'</span><span>'+i.quantity+'</span><span>₦'+parseFloat(i.total).toLocaleString()+'</span></div>'});h+='</div>'}
-h+='<div class="order-total"><span>Total:</span><span>₦'+parseFloat(o.grand_total||0).toLocaleString()+'</span></div></div>';
+ if(d.success){var o=d.data,h='<div>';
+ h+='<p style="margin:0 0 0.5rem"><strong>Order #:</strong> '+(o.order_number||'N/A')+'</p>';
+ h+='<p style="margin:0 0 0.5rem"><strong>Date:</strong> '+(o.order_date||'N/A')+'</p>';
+ h+='<p style="margin:0 0 1rem"><strong>Customer:</strong> '+(o.customer_name||'N/A')+'</p>';
+ if(o.items&&o.items.length>0){h+='<div style="margin:1rem 0"><table style="width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed">';
+ h+='<tr style="font-weight:600;background:#f1f5f9"><th style="text-align:left;width:34%">Item</th><th style="text-align:right;width:16%">Price</th><th style="width:12%">Qty</th><th style="width:16%;color:#c00">Disc</th><th style="text-align:right;width:22%">Total</th></tr>';
+ o.items.forEach(function(i){var discountDisplay=Number(i.discount)>0?'-₦'+formatReceiptNumber(i.discount):'-';h+='<tr><td>'+i.product_name+'</td><td style="text-align:right">₦'+formatReceiptNumber(i.price)+'</td><td style="text-align:center">'+formatReceiptNumber(i.quantity)+'</td><td style="text-align:center;color:#c00">'+discountDisplay+'</td><td style="text-align:right">₦'+formatReceiptNumber(i.total)+'</td></tr>'});h+='</table></div>'}
+ h+='<div class="order-total" style="font-weight:700"><span>Total:</span><span>₦'+formatReceiptNumber(o.grand_total||0)+'</span></div></div>';
 body.innerHTML=h}else{body.innerHTML='<div style="text-align:center;padding:2rem;color:#991b1b">Failed to load</div>'}
 }).catch(function(){body.innerHTML='<div style="text-align:center;padding:2rem;color:#991b1b">Error loading</div>'});
 }
@@ -317,6 +318,14 @@ async function printToBluetoothPrinter(text) {
     }
 }
 
+function formatReceiptNumber(value) {
+    var num = Number(value);
+    if (Number.isNaN(num)) {
+        return '0';
+    }
+    return num.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+}
+
 function generateOrderESCPOS(o) {
     var text = '';
     var line = '--------------------------------';
@@ -328,16 +337,18 @@ function generateOrderESCPOS(o) {
     text += 'Time: ' + (o.order_time||'N/A') + '\n';
     text += 'Customer: ' + (o.customer_name||'N/A') + '\n';
     text += line + '\n';
-    text += 'ITEM              QTY    AMOUNT\n';
+    text += 'ITEM     PRICE QTY DISC TOTAL\n';
     text += line + '\n';
     if(o.items&&o.items.length>0){o.items.forEach(function(i){
-        var name = (i.product_name || '').substring(0, 16).padEnd(16);
-        var qty = String(i.quantity).padStart(4);
-        var amt = 'N' + parseFloat(i.total).toLocaleString();
-        text += name + ' ' + qty + ' ' + amt.padStart(8) + '\n';
+        var name = (i.product_name || '').substring(0, 8).padEnd(8);
+        var price = String(formatReceiptNumber(i.price)).padStart(5);
+        var qty = String(formatReceiptNumber(i.quantity)).padStart(3);
+        var discount = i.discount > 0 ? formatReceiptNumber(i.discount) : '-';
+        var amt = String(formatReceiptNumber(i.total)).padStart(6);
+        text += name + ' ' + price + ' ' + qty + ' ' + String(discount).padStart(5) + ' ' + amt + '\n';
     })}
     text += line + '\n';
-    text += 'ORDER TOTAL:       N' + parseFloat(o.grand_total||0).toLocaleString().padStart(9) + '\n';
+    text += 'ORDER TOTAL:       N' + String(formatReceiptNumber(o.grand_total||0)).padStart(9) + '\n';
     text += line + '\n';
     text += '  Credit order - Payment pending\n';
     text += '      Powered by BendlessTech\n';
@@ -357,12 +368,12 @@ function generatePaymentESCPOS(p) {
     text += 'Debtor: ' + p.debtor_name + '\n';
     text += 'Staff: ' + (p.staff_name||'-') + '\n';
     text += line + '\n';
-    text += 'Balance Before: N' + parseFloat(p.balance_before).toLocaleString() + '\n';
-    text += 'PAYMENT:        N' + parseFloat(p.amount).toLocaleString() + '\n';
-    if(p.transfer_amount>0) text += '  Via Transfer: N' + parseFloat(p.transfer_amount).toLocaleString() + '\n';
-    if(p.cash_amount>0) text += '  Via Cash:     N' + parseFloat(p.cash_amount).toLocaleString() + '\n';
+    text += 'Balance Before: N' + formatReceiptNumber(p.balance_before) + '\n';
+    text += 'PAYMENT:        N' + formatReceiptNumber(p.amount) + '\n';
+    if(p.transfer_amount>0) text += '  Via Transfer: N' + formatReceiptNumber(p.transfer_amount) + '\n';
+    if(p.cash_amount>0) text += '  Via Cash:     N' + formatReceiptNumber(p.cash_amount) + '\n';
     text += line + '\n';
-    text += 'NEW BALANCE:    N' + parseFloat(p.balance_after).toLocaleString() + '\n';
+    text += 'NEW BALANCE:    N' + formatReceiptNumber(p.balance_after) + '\n';
     text += line + '\n';
     text += '   Payment received with thanks!\n';
     text += '      Powered by BendlessTech\n';
@@ -399,8 +410,14 @@ h+='.header h2{font-size:16px;font-weight:bold;margin:0 0 5px}';
 h+='.header p{font-size:11px;margin:0}';
 h+='.info{margin:10px 0;padding:8px 0;border-bottom:1px dashed #000}';
 h+='.info p{display:flex;justify-content:space-between;margin:6px 0;font-size:12px}';
-h+='.items{margin:10px 0;padding:8px 0;border-bottom:1px dashed #000}';
-h+='.item{display:flex;justify-content:space-between;margin:6px 0;font-size:12px}';
+ h+='.items-table{width:100%;margin:10px 0;border-collapse:collapse;font-size:11px;table-layout:fixed}';
+ h+='.items-table th{border-bottom:1px solid #000;padding-bottom:4px;text-align:center;font-weight:bold}';
+ h+='.items-table td{padding:4px 0;text-align:center}';
+ h+='.items-table th:first-child,.items-table td:first-child{text-align:left;width:34%}';
+ h+='.items-table th:nth-child(2),.items-table td:nth-child(2){text-align:right;width:16%}';
+ h+='.items-table th:nth-child(3),.items-table td:nth-child(3){width:12%}';
+ h+='.items-table th:nth-child(4),.items-table td:nth-child(4){width:16%;color:#c00}';
+ h+='.items-table th:nth-child(5),.items-table td:nth-child(5){text-align:right;width:22%;font-weight:bold}';
 h+='.total{margin:10px 0;padding:10px 0;border-top:2px solid #000}';
 h+='.total p{display:flex;justify-content:space-between;margin:6px 0;font-size:14px;font-weight:bold}';
 h+='.footer{text-align:center;margin-top:15px;padding-top:10px;border-top:1px dashed #000;font-size:10px}';
@@ -415,14 +432,15 @@ h+='<p><span>Date:</span><span>'+(o.order_date||'N/A')+'</span></p>';
 h+='<p><span>Time:</span><span>'+(o.order_time||'N/A')+'</span></p>';
 h+='<p><span>Customer:</span><span style="font-weight:bold">'+(o.customer_name||'N/A')+'</span></p>';
 h+='</div>';
-h+='<div class="items">';
-h+='<div class="item" style="font-weight:bold;border-bottom:1px solid #000;padding-bottom:5px;margin-bottom:8px"><span>ITEM</span><span>QTY</span><span>AMT</span></div>';
-if(o.items&&o.items.length>0){o.items.forEach(function(i){
-h+='<div class="item"><span style="flex:1">'+i.product_name+'</span><span style="width:30px;text-align:center">'+i.quantity+'</span><span style="width:60px;text-align:right">N'+parseFloat(i.total).toLocaleString()+'</span></div>';
-})}
-h+='</div>';
+ h+='<table class="items-table">';
+ h+='<tr><th>ITEM</th><th>PRICE</th><th>QTY</th><th>DISC</th><th>TOTAL</th></tr>';
+ if(o.items&&o.items.length>0){o.items.forEach(function(i){
+     var discountDisplay = Number(i.discount) > 0 ? '-N'+formatReceiptNumber(i.discount) : '-';
+ h+='<tr><td>'+i.product_name+'</td><td>N'+formatReceiptNumber(i.price)+'</td><td>'+formatReceiptNumber(i.quantity)+'</td><td>'+discountDisplay+'</td><td>N'+formatReceiptNumber(i.total)+'</td></tr>';
+ })}
+ h+='</table>';
 h+='<div class="total">';
-h+='<p><span>ORDER TOTAL:</span><span>N'+parseFloat(o.grand_total||0).toLocaleString()+'</span></p>';
+ h+='<p><span>ORDER TOTAL:</span><span>N'+formatReceiptNumber(o.grand_total||0)+'</span></p>';
 h+='</div>';
 h+='<div class="footer"><p>This is a credit order - Payment pending</p><p style="margin-top:5px">Powered by BendlessTech</p></div>';
 h+='</body></html>';
@@ -472,14 +490,14 @@ h+='<p><span>Debtor:</span><span style="font-weight:bold">'+p.debtor_name+'</spa
 h+='<p><span>Staff:</span><span>'+(p.staff_name||'-')+'</span></p>';
 h+='</div>';
 h+='<div class="payment">';
-h+='<p><span>Balance Before:</span><span style="color:#cc0000">N'+parseFloat(p.balance_before).toLocaleString()+'</span></p>';
-h+='<p class="big"><span>PAYMENT AMOUNT:</span><span>N'+parseFloat(p.amount).toLocaleString()+'</span></p>';
-if(p.transfer_amount>0)h+='<p><span>  - Via Transfer:</span><span>N'+parseFloat(p.transfer_amount).toLocaleString()+'</span></p>';
-if(p.cash_amount>0)h+='<p><span>  - Via Cash:</span><span>N'+parseFloat(p.cash_amount).toLocaleString()+'</span></p>';
+ h+='<p><span>Balance Before:</span><span style="color:#cc0000">N'+formatReceiptNumber(p.balance_before)+'</span></p>';
+ h+='<p class="big"><span>PAYMENT AMOUNT:</span><span>N'+formatReceiptNumber(p.amount)+'</span></p>';
+ if(p.transfer_amount>0)h+='<p><span>  - Via Transfer:</span><span>N'+formatReceiptNumber(p.transfer_amount)+'</span></p>';
+ if(p.cash_amount>0)h+='<p><span>  - Via Cash:</span><span>N'+formatReceiptNumber(p.cash_amount)+'</span></p>';
 h+='</div>';
 h+='<div class="total">';
 var balColor=parseFloat(p.balance_after)>0?'#cc0000':'#008800';
-h+='<p style="color:'+balColor+'"><span>NEW BALANCE:</span><span>N'+parseFloat(p.balance_after).toLocaleString()+'</span></p>';
+ h+='<p style="color:'+balColor+'"><span>NEW BALANCE:</span><span>N'+formatReceiptNumber(p.balance_after)+'</span></p>';
 h+='</div>';
 h+='<div class="footer"><p>Payment received with thanks!</p><p style="margin-top:5px">Powered by BendlessTech</p></div>';
 h+='</body></html>';

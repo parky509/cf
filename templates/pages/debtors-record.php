@@ -320,6 +320,14 @@ if (isset($_GET['pay_done']) && isset($_GET['pk'])) {
     }
 }
 
+if (!function_exists('cfi_format_receipt_value')) {
+    function cfi_format_receipt_value($value) {
+        $formatted = number_format((float) $value, 2, '.', ',');
+        $formatted = rtrim(rtrim($formatted, '0'), '.');
+        return $formatted === '' ? '0' : $formatted;
+    }
+}
+
 // Get fresh data - use SQL_NO_CACHE and bypass WordPress object cache
 $wpdb->flush();  // Clear any cached query results
 $safe_debtors_table = esc_sql($debtors_table);
@@ -424,7 +432,14 @@ table input{width:70px;padding:0.4rem;border:1px solid #e2e8f0;border-radius:4px
 .receipt-info{margin-bottom:1rem;font-size:0.85rem}
 .receipt-info p{margin:0.25rem 0;display:flex;justify-content:space-between}
 .receipt-items{border-top:1px dashed #e2e8f0;border-bottom:1px dashed #e2e8f0;padding:0.5rem 0;margin:0.5rem 0}
-.receipt-item{display:flex;justify-content:space-between;padding:0.25rem 0;font-size:0.8rem}
+.receipt-table{width:100%;border-collapse:collapse;font-size:0.75rem;table-layout:fixed}
+.receipt-table th{font-weight:600;text-align:center;border-bottom:1px solid #e2e8f0;padding-bottom:0.25rem}
+.receipt-table td{padding:0.2rem 0;text-align:center}
+.receipt-table th:first-child,.receipt-table td:first-child{text-align:left;width:34%}
+.receipt-table th:nth-child(2),.receipt-table td:nth-child(2){text-align:right;width:16%}
+.receipt-table th:nth-child(3),.receipt-table td:nth-child(3){width:12%}
+.receipt-table th:nth-child(4),.receipt-table td:nth-child(4){width:16%;color:#dc2626}
+.receipt-table th:nth-child(5),.receipt-table td:nth-child(5){text-align:right;width:22%;font-weight:600}
 .receipt-total{font-size:1.1rem;font-weight:700;color:#001943;border-top:2px solid #001943;padding-top:0.5rem;margin-top:0.5rem;display:flex;justify-content:space-between}
 .receipt-footer{text-align:center;margin-top:1rem;padding-top:1rem;border-top:2px dashed #e2e8f0;font-size:0.75rem;color:#64748b}
 @media(max-width:768px){
@@ -592,13 +607,23 @@ if(Math.abs(diff)>0.01&&tot>0){w.style.display='block';if(diff>0){w.textContent=
 <p><span>Staff:</span><?php echo esc_html($order_receipt['staff']); ?></p>
 </div>
 <div class="receipt-items">
-<div class="receipt-item" style="font-weight:600;background:#f1f5f9;padding:0.5rem;border-radius:4px"><span style="flex:1">Item</span><span style="width:40px;text-align:center">Qty</span><span style="width:80px;text-align:right">Amount</span></div>
+<table class="receipt-table">
+<thead><tr><th>Item</th><th>Price</th><th>Qty</th><th>Disc</th><th>Total</th></tr></thead>
+<tbody>
 <?php foreach ($order_receipt['items'] as $item) : ?>
-<div class="receipt-item"><span style="flex:1"><?php echo esc_html($item['product_name']); ?></span><span style="width:40px;text-align:center"><?php echo esc_html($item['quantity']); ?></span><span style="width:80px;text-align:right;font-weight:600">₦<?php echo number_format($item['total'], 0); ?></span></div>
+<tr>
+    <td><?php echo esc_html($item['product_name']); ?></td>
+    <td>₦<?php echo cfi_format_receipt_value($item['price']); ?></td>
+    <td><?php echo cfi_format_receipt_value($item['quantity']); ?></td>
+    <td><?php echo $item['discount'] > 0 ? '-₦' . cfi_format_receipt_value($item['discount']) : '-'; ?></td>
+    <td>₦<?php echo cfi_format_receipt_value($item['total']); ?></td>
+</tr>
 <?php endforeach; ?>
+</tbody>
+</table>
 </div>
-<div class="receipt-total"><span>Order Total:</span><span>₦<?php echo number_format($order_receipt['total'], 0); ?></span></div>
-<p style="display:flex;justify-content:space-between;color:#dc2626;font-weight:600"><span>New Balance:</span><span>₦<?php echo number_format($order_receipt['new_balance'], 0); ?></span></p>
+<div class="receipt-total"><span>Order Total:</span><span>₦<?php echo cfi_format_receipt_value($order_receipt['total']); ?></span></div>
+<p style="display:flex;justify-content:space-between;color:#dc2626;font-weight:600"><span>New Balance:</span><span>₦<?php echo cfi_format_receipt_value($order_receipt['new_balance']); ?></span></p>
 <div class="receipt-footer"><p style="margin:0">This is a credit order</p><p style="margin:0">Payment pending</p></div>
 </div>
 <div class="modal-footer">
@@ -622,15 +647,14 @@ if ('bluetooth' in navigator) {
     text += 'Debtor: <?php echo esc_js($order_receipt['debtor_name']); ?>\n';
     text += 'Staff: <?php echo esc_js($order_receipt['staff']); ?>\n';
     text += line + '\n';
-    text += 'ITEM       PRICE  QTY   AMOUNT\n';
+    text += 'ITEM     PRICE QTY DISC TOTAL\n';
     text += '--------------------------------\n';
     <?php foreach ($order_receipt['items'] as $item) : ?>
-    text += '<?php echo str_pad(substr(esc_js($item['product_name']), 0, 10), 10); ?> N<?php echo str_pad(number_format($item['price'], 0), 5); ?> <?php echo str_pad(intval($item['quantity']), 3); ?> N<?php echo str_pad(number_format($item['total'], 0), 6, ' ', STR_PAD_LEFT); ?>\n';
-    <?php if (isset($item['discount']) && $item['discount'] > 0) : ?>text += '           Disc: -N<?php echo number_format($item['discount'], 0); ?>\n';<?php endif; ?>
+    text += '<?php echo str_pad(substr(esc_js($item['product_name']), 0, 8), 8); ?> <?php echo str_pad(cfi_format_receipt_value($item['price']), 5, ' ', STR_PAD_LEFT); ?> <?php echo str_pad(cfi_format_receipt_value($item['quantity']), 3, ' ', STR_PAD_LEFT); ?> <?php echo str_pad($item['discount'] > 0 ? cfi_format_receipt_value($item['discount']) : '-', 5, ' ', STR_PAD_LEFT); ?> <?php echo str_pad(cfi_format_receipt_value($item['total']), 6, ' ', STR_PAD_LEFT); ?>\n';
     <?php endforeach; ?>
     text += line + '\n';
-    text += 'ORDER TOTAL:       N<?php echo str_pad(number_format($order_receipt['total'], 0), 9, ' ', STR_PAD_LEFT); ?>\n';
-    text += 'NEW BALANCE:       N<?php echo str_pad(number_format($order_receipt['new_balance'], 0), 9, ' ', STR_PAD_LEFT); ?>\n';
+    text += 'ORDER TOTAL:       N<?php echo str_pad(cfi_format_receipt_value($order_receipt['total']), 9, ' ', STR_PAD_LEFT); ?>\n';
+    text += 'NEW BALANCE:       N<?php echo str_pad(cfi_format_receipt_value($order_receipt['new_balance']), 9, ' ', STR_PAD_LEFT); ?>\n';
     text += line + '\n';
     text += '  This is a credit order\n';
     text += '      Payment pending\n';
@@ -697,15 +721,15 @@ h+='<tr><th>ITEM</th><th>PRICE</th><th>QTY</th><th>DISC</th><th>AMOUNT</th></tr>
 <?php foreach ($order_receipt['items'] as $item) : ?>
 h+='<tr>';
 h+='<td><?php echo esc_js($item['product_name']); ?></td>';
-h+='<td>₦<?php echo number_format($item['price'], 0); ?></td>';
-h+='<td style="text-align:center"><?php echo intval($item['quantity']); ?></td>';
-h+='<td style="text-align:center;color:#c00"><?php echo isset($item['discount']) && $item['discount'] > 0 ? '-₦' . number_format($item['discount'], 0) : '-'; ?></td>';
-h+='<td><strong>₦<?php echo number_format($item['total'], 0); ?></strong></td>';
+h+='<td>₦<?php echo cfi_format_receipt_value($item['price']); ?></td>';
+h+='<td style="text-align:center"><?php echo cfi_format_receipt_value($item['quantity']); ?></td>';
+h+='<td style="text-align:center;color:#c00"><?php echo isset($item['discount']) && $item['discount'] > 0 ? '-₦' . cfi_format_receipt_value($item['discount']) : '-'; ?></td>';
+h+='<td><strong>₦<?php echo cfi_format_receipt_value($item['total']); ?></strong></td>';
 h+='</tr>';
 <?php endforeach; ?>
 h+='</table>';
-h+='<div class="grand-total"><span>ORDER TOTAL:</span><span>₦<?php echo number_format($order_receipt['total'], 0); ?></span></div>';
-h+='<div class="balance-row"><span>NEW BALANCE:</span><span>₦<?php echo number_format($order_receipt['new_balance'], 0); ?></span></div>';
+h+='<div class="grand-total"><span>ORDER TOTAL:</span><span>₦<?php echo cfi_format_receipt_value($order_receipt['total']); ?></span></div>';
+h+='<div class="balance-row"><span>NEW BALANCE:</span><span>₦<?php echo cfi_format_receipt_value($order_receipt['new_balance']); ?></span></div>';
 h+='<div class="credit-note">⚠ CREDIT ORDER - PAYMENT PENDING</div>';
 h+='<div class="footer"><p class="thanks">Thank you for your patronage!</p><p style="margin-top:5px;font-size:9px">Powered by BendlessTech</p></div>';
 h+='</div>';

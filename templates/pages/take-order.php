@@ -183,6 +183,14 @@ if (isset($_GET['order_success']) && $_GET['order_success'] === '1' && isset($_G
     }
 }
 
+if (!function_exists('cfi_format_receipt_value')) {
+    function cfi_format_receipt_value($value) {
+        $formatted = number_format((float) $value, 2, '.', ',');
+        $formatted = rtrim(rtrim($formatted, '0'), '.');
+        return $formatted === '' ? '0' : $formatted;
+    }
+}
+
 // Get products
 $products = CFI_Products::get_all();
 ?>
@@ -376,10 +384,14 @@ $products = CFI_Products::get_all();
         .receipt-info { margin-bottom: 1rem; font-size: 0.85rem; }
         .receipt-info p { margin: 0.25rem 0; display: flex; justify-content: space-between; }
         .receipt-items { border-top: 1px dashed #e2e8f0; border-bottom: 1px dashed #e2e8f0; padding: 0.5rem 0; margin: 0.5rem 0; }
-        .receipt-item { display: flex; justify-content: space-between; padding: 0.25rem 0; font-size: 0.8rem; }
-        .receipt-item .name { flex: 1; }
-        .receipt-item .qty { width: 40px; text-align: center; }
-        .receipt-item .price { width: 80px; text-align: right; font-weight: 600; }
+        .receipt-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; table-layout: fixed; }
+        .receipt-table th { text-align: center; font-weight: 600; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.25rem; }
+        .receipt-table td { padding: 0.2rem 0; text-align: center; }
+        .receipt-table th:first-child, .receipt-table td:first-child { text-align: left; width: 34%; }
+        .receipt-table th:nth-child(2), .receipt-table td:nth-child(2) { text-align: right; width: 16%; }
+        .receipt-table th:nth-child(3), .receipt-table td:nth-child(3) { width: 12%; }
+        .receipt-table th:nth-child(4), .receipt-table td:nth-child(4) { width: 16%; color: #dc2626; }
+        .receipt-table th:nth-child(5), .receipt-table td:nth-child(5) { text-align: right; width: 22%; font-weight: 600; }
         .receipt-totals { margin-top: 0.5rem; font-size: 0.85rem; }
         .receipt-totals p { display: flex; justify-content: space-between; margin: 0.25rem 0; }
         .receipt-totals .grand { font-size: 1.1rem; font-weight: 700; color: #001943; border-top: 2px solid #001943; padding-top: 0.5rem; margin-top: 0.5rem; }
@@ -645,32 +657,42 @@ $products = CFI_Products::get_all();
             </div>
             
             <div class="receipt-items">
-                <div class="receipt-item" style="font-weight: 600; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.25rem; margin-bottom: 0.25rem;">
-                    <span class="name">Item</span>
-                    <span class="qty">Qty</span>
-                    <span class="price">Amount</span>
-                </div>
-                <?php foreach ($receipt_data['items'] as $item) : ?>
-                <div class="receipt-item">
-                    <span class="name"><?php echo esc_html($item['product_name']); ?></span>
-                    <span class="qty"><?php echo intval($item['quantity']); ?></span>
-                    <span class="price">₦<?php echo number_format($item['total'], 0); ?></span>
-                </div>
-                <?php endforeach; ?>
+                <table class="receipt-table">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Price</th>
+                            <th>Qty</th>
+                            <th>Disc</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($receipt_data['items'] as $item) : ?>
+                        <tr>
+                            <td><?php echo esc_html($item['product_name']); ?></td>
+                            <td>₦<?php echo cfi_format_receipt_value($item['price']); ?></td>
+                            <td><?php echo cfi_format_receipt_value($item['quantity']); ?></td>
+                            <td><?php echo $item['discount'] > 0 ? '-₦' . cfi_format_receipt_value($item['discount']) : '-'; ?></td>
+                            <td>₦<?php echo cfi_format_receipt_value($item['total']); ?></td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
             </div>
             
             <div class="receipt-totals">
-                <p><span>Subtotal:</span> <span>₦<?php echo number_format($receipt_data['subtotal'], 0); ?></span></p>
+                <p><span>Subtotal:</span> <span><strong>₦<?php echo cfi_format_receipt_value($receipt_data['subtotal']); ?></strong></span></p>
                 <?php if ($receipt_data['discount'] > 0) : ?>
-                <p><span>Discount:</span> <span>-₦<?php echo number_format($receipt_data['discount'], 0); ?></span></p>
+                <p><span>Discount:</span> <span><strong>-₦<?php echo cfi_format_receipt_value($receipt_data['discount']); ?></strong></span></p>
                 <?php endif; ?>
-                <p class="grand"><span>Grand Total:</span> <span>₦<?php echo number_format($receipt_data['grand_total'], 0); ?></span></p>
+                <p class="grand"><span>Grand Total:</span> <span><strong>₦<?php echo cfi_format_receipt_value($receipt_data['grand_total']); ?></strong></span></p>
                 <p><span>Payment:</span> <span><?php echo ucfirst($receipt_data['payment_method']); ?></span></p>
                 <?php if ($receipt_data['transfer_amount'] > 0) : ?>
-                <p><span>Transfer:</span> <span>₦<?php echo number_format($receipt_data['transfer_amount'], 0); ?></span></p>
+                <p><span>Transfer:</span> <span>₦<?php echo cfi_format_receipt_value($receipt_data['transfer_amount']); ?></span></p>
                 <?php endif; ?>
                 <?php if ($receipt_data['cash_amount'] > 0) : ?>
-                <p><span>Cash:</span> <span>₦<?php echo number_format($receipt_data['cash_amount'], 0); ?></span></p>
+                <p><span>Cash:</span> <span>₦<?php echo cfi_format_receipt_value($receipt_data['cash_amount']); ?></span></p>
                 <?php endif; ?>
             </div>
             
@@ -1014,6 +1036,14 @@ async function printToBluetoothPrinter(text) {
     }
 }
 
+function formatReceiptNumber(value) {
+    var num = Number(value);
+    if (Number.isNaN(num)) {
+        return '0';
+    }
+    return num.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+}
+
 function generateESCPOSReceipt() {
     var text = '';
     var line = '--------------------------------';
@@ -1034,20 +1064,24 @@ function generateESCPOSReceipt() {
     text += line + '\n';
     
     // Items
-    text += 'ITEM              QTY    AMOUNT\n';
+    text += 'ITEM     PRICE QTY DISC TOTAL\n';
     text += line + '\n';
     <?php if (isset($receipt_data['items'])) : foreach ($receipt_data['items'] as $item) : ?>
-    text += '<?php echo str_pad(substr(esc_js($item['product_name']), 0, 16), 16); ?> <?php echo str_pad(intval($item['quantity']), 4); ?> N<?php echo str_pad(number_format($item['total'], 0), 8, ' ', STR_PAD_LEFT); ?>\n';
+    text += '<?php echo str_pad(substr(esc_js($item['product_name']), 0, 8), 8); ?> ' +
+        String(formatReceiptNumber('<?php echo esc_js($item['price']); ?>')).padStart(5) + ' ' +
+        String(formatReceiptNumber('<?php echo esc_js($item['quantity']); ?>')).padStart(3) + ' ' +
+        String(<?php echo $item['discount'] > 0 ? "formatReceiptNumber('{$item['discount']}')" : "'-'"; ?>).padStart(5) + ' ' +
+        String(formatReceiptNumber('<?php echo esc_js($item['total']); ?>')).padStart(6) + '\n';
     <?php endforeach; endif; ?>
     text += line + '\n';
     
     // Totals
-    text += 'Subtotal:          N<?php echo isset($receipt_data['subtotal']) ? str_pad(number_format($receipt_data['subtotal'], 0), 9, ' ', STR_PAD_LEFT) : '        0'; ?>\n';
+    text += 'Subtotal:          N<?php echo isset($receipt_data['subtotal']) ? str_pad(cfi_format_receipt_value($receipt_data['subtotal']), 9, ' ', STR_PAD_LEFT) : '        0'; ?>\n';
     <?php if (isset($receipt_data['discount']) && $receipt_data['discount'] > 0) : ?>
-    text += 'Discount:         -N<?php echo str_pad(number_format($receipt_data['discount'], 0), 9, ' ', STR_PAD_LEFT); ?>\n';
+    text += 'Discount:         -N<?php echo str_pad(cfi_format_receipt_value($receipt_data['discount']), 9, ' ', STR_PAD_LEFT); ?>\n';
     <?php endif; ?>
     text += line + '\n';
-    text += 'GRAND TOTAL:       N<?php echo isset($receipt_data['grand_total']) ? str_pad(number_format($receipt_data['grand_total'], 0), 9, ' ', STR_PAD_LEFT) : '        0'; ?>\n';
+    text += 'GRAND TOTAL:       N<?php echo isset($receipt_data['grand_total']) ? str_pad(cfi_format_receipt_value($receipt_data['grand_total']), 9, ' ', STR_PAD_LEFT) : '        0'; ?>\n';
     text += 'Payment: <?php echo isset($receipt_data['payment_method']) ? ucfirst(esc_js($receipt_data['payment_method'])) : ''; ?>\n';
     text += line + '\n';
     
@@ -1141,30 +1175,30 @@ async function printReceipt() {
     <?php if (isset($receipt_data['items'])) : foreach ($receipt_data['items'] as $item) : ?>
     h += '<tr>';
     h += '<td><?php echo esc_js($item['product_name']); ?></td>';
-    h += '<td>₦<?php echo number_format($item['price'], 0); ?></td>';
-    h += '<td style="text-align:center"><?php echo intval($item['quantity']); ?></td>';
-    h += '<td style="text-align:center;color:#c00"><?php echo $item['discount'] > 0 ? '-₦' . number_format($item['discount'], 0) : '-'; ?></td>';
-    h += '<td><strong>₦<?php echo number_format($item['total'], 0); ?></strong></td>';
+    h += '<td>₦<?php echo cfi_format_receipt_value($item['price']); ?></td>';
+    h += '<td style="text-align:center"><?php echo cfi_format_receipt_value($item['quantity']); ?></td>';
+    h += '<td style="text-align:center;color:#c00"><?php echo $item['discount'] > 0 ? '-₦' . cfi_format_receipt_value($item['discount']) : '-'; ?></td>';
+    h += '<td><strong>₦<?php echo cfi_format_receipt_value($item['total']); ?></strong></td>';
     h += '</tr>';
     <?php endforeach; endif; ?>
     h += '</table>';
     
     h += '<div class="totals">';
-    h += '<div class="total-row"><span class="label">Subtotal:</span><span class="value">₦<?php echo isset($receipt_data['subtotal']) ? number_format($receipt_data['subtotal'], 0) : '0'; ?></span></div>';
+    h += '<div class="total-row"><span class="label">Subtotal:</span><span class="value">₦<?php echo isset($receipt_data['subtotal']) ? cfi_format_receipt_value($receipt_data['subtotal']) : '0'; ?></span></div>';
     <?php if (isset($receipt_data['discount']) && $receipt_data['discount'] > 0) : ?>
-    h += '<div class="total-row"><span class="label">Total Discount:</span><span class="value" style="color:#c00">-₦<?php echo number_format($receipt_data['discount'], 0); ?></span></div>';
+    h += '<div class="total-row"><span class="label">Total Discount:</span><span class="value" style="color:#c00">-₦<?php echo cfi_format_receipt_value($receipt_data['discount']); ?></span></div>';
     <?php endif; ?>
     h += '</div>';
     
-    h += '<div class="grand-total"><span>GRAND TOTAL:</span><span>₦<?php echo isset($receipt_data['grand_total']) ? number_format($receipt_data['grand_total'], 0) : '0'; ?></span></div>';
+    h += '<div class="grand-total"><span>GRAND TOTAL:</span><span>₦<?php echo isset($receipt_data['grand_total']) ? cfi_format_receipt_value($receipt_data['grand_total']) : '0'; ?></span></div>';
     
     h += '<div class="payment-info">';
     h += '<div class="payment-row"><span class="label">Payment Method:</span><span class="value"><?php echo isset($receipt_data['payment_method']) ? ucfirst(esc_js($receipt_data['payment_method'])) : ''; ?></span></div>';
     <?php if (isset($receipt_data['transfer_amount']) && $receipt_data['transfer_amount'] > 0) : ?>
-    h += '<div class="payment-row"><span class="label">Transfer/Card:</span><span class="value">₦<?php echo number_format($receipt_data['transfer_amount'], 0); ?></span></div>';
+    h += '<div class="payment-row"><span class="label">Transfer/Card:</span><span class="value">₦<?php echo cfi_format_receipt_value($receipt_data['transfer_amount']); ?></span></div>';
     <?php endif; ?>
     <?php if (isset($receipt_data['cash_amount']) && $receipt_data['cash_amount'] > 0) : ?>
-    h += '<div class="payment-row"><span class="label">Cash:</span><span class="value">₦<?php echo number_format($receipt_data['cash_amount'], 0); ?></span></div>';
+    h += '<div class="payment-row"><span class="label">Cash:</span><span class="value">₦<?php echo cfi_format_receipt_value($receipt_data['cash_amount']); ?></span></div>';
     <?php endif; ?>
     <?php if (isset($receipt_data['bank_name']) && !empty($receipt_data['bank_name'])) : ?>
     h += '<div class="payment-row"><span class="label">Bank:</span><span class="value"><?php echo esc_js($receipt_data['bank_name']); ?></span></div>';
@@ -1222,35 +1256,44 @@ function generateTextReceipt() {
     lines.push(separator('-'));
     
     // Items Header
-    lines.push('ITEM             QTY    AMOUNT');
+    lines.push('ITEM     PRICE QTY DISC TOTAL');
     lines.push(separator('-'));
     
     // Items
     <?php foreach ($receipt_data['items'] as $item) : ?>
-    var itemName = '<?php echo esc_js(substr($item['product_name'], 0, 14)); ?>';
+    var itemName = '<?php echo esc_js(substr($item['product_name'], 0, 8)); ?>';
+    var price = '<?php echo esc_js($item['price']); ?>';
     var qty = '<?php echo esc_js($item['quantity']); ?>';
-    var amount = '<?php echo number_format($item['total'], 0); ?>';
-    lines.push(itemName.padEnd(17) + qty.padStart(4) + amount.padStart(11));
+    var discount = '<?php echo esc_js($item['discount']); ?>';
+    var amount = '<?php echo esc_js($item['total']); ?>';
+    var discountDisplay = Number(discount) > 0 ? formatReceiptNumber(discount) : '-';
+    lines.push(
+        itemName.padEnd(8) + ' ' +
+        formatReceiptNumber(price).padStart(5) + ' ' +
+        formatReceiptNumber(qty).padStart(3) + ' ' +
+        discountDisplay.padStart(5) + ' ' +
+        formatReceiptNumber(amount).padStart(6)
+    );
     <?php endforeach; ?>
     
     lines.push(separator('-'));
     
     // Totals
-    lines.push(leftRight('Subtotal:', 'N<?php echo number_format($receipt_data['subtotal'], 0); ?>'));
+    lines.push(leftRight('Subtotal:', 'N<?php echo cfi_format_receipt_value($receipt_data['subtotal']); ?>'));
     <?php if ($receipt_data['discount'] > 0) : ?>
-    lines.push(leftRight('Discount:', '-N<?php echo number_format($receipt_data['discount'], 0); ?>'));
+    lines.push(leftRight('Discount:', '-N<?php echo cfi_format_receipt_value($receipt_data['discount']); ?>'));
     <?php endif; ?>
     lines.push(separator('='));
-    lines.push(leftRight('GRAND TOTAL:', 'N<?php echo number_format($receipt_data['grand_total'], 0); ?>'));
+    lines.push(leftRight('GRAND TOTAL:', 'N<?php echo cfi_format_receipt_value($receipt_data['grand_total']); ?>'));
     lines.push(separator('='));
     
     // Payment Info
     lines.push(leftRight('Payment:', '<?php echo ucfirst(esc_js($receipt_data['payment_method'])); ?>'));
     <?php if ($receipt_data['transfer_amount'] > 0) : ?>
-    lines.push(leftRight('Transfer:', 'N<?php echo number_format($receipt_data['transfer_amount'], 0); ?>'));
+    lines.push(leftRight('Transfer:', 'N<?php echo cfi_format_receipt_value($receipt_data['transfer_amount']); ?>'));
     <?php endif; ?>
     <?php if ($receipt_data['cash_amount'] > 0) : ?>
-    lines.push(leftRight('Cash:', 'N<?php echo number_format($receipt_data['cash_amount'], 0); ?>'));
+    lines.push(leftRight('Cash:', 'N<?php echo cfi_format_receipt_value($receipt_data['cash_amount']); ?>'));
     <?php endif; ?>
     <?php endif; ?>
     
