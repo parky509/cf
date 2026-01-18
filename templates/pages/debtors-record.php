@@ -303,18 +303,20 @@ if (isset($_GET['pay_done']) && isset($_GET['pk'])) {
 // Get fresh data - use SQL_NO_CACHE and bypass WordPress object cache
 $wpdb->flush();  // Clear any cached query results
 $debt_tolerance = 0.01;
+$safe_debtors_table = esc_sql($debtors_table);
+$safe_trans_table = esc_sql($trans_table);
 $latest_debt_table = "(
     SELECT dt.debtor_id, dt.balance_after
-    FROM `{$trans_table}` dt
+    FROM `{$safe_trans_table}` dt
     INNER JOIN (
         SELECT debtor_id, MAX(id) AS max_id
-        FROM `{$trans_table}`
+        FROM `{$safe_trans_table}`
         GROUP BY debtor_id
     ) latest ON latest.max_id = dt.id
 )";
 $wpdb->query(
     $wpdb->prepare(
-        "UPDATE `{$debtors_table}` d
+        "UPDATE `{$safe_debtors_table}` d
         INNER JOIN {$latest_debt_table} latest ON latest.debtor_id = d.id
         SET d.total_debt = latest.balance_after,
             d.updated_at = %s
@@ -327,7 +329,7 @@ $wpdb->query(
 );
 $debtors = $wpdb->get_results(
     "SELECT SQL_NO_CACHE d.*, COALESCE(latest.balance_after, d.total_debt) AS total_debt
-    FROM `{$debtors_table}` d
+    FROM `{$safe_debtors_table}` d
     LEFT JOIN {$latest_debt_table} latest ON latest.debtor_id = d.id
     WHERE d.status = 'active'
     ORDER BY d.name ASC"
@@ -338,12 +340,11 @@ $selected_debtor_id = isset($_GET['debtor']) ? intval($_GET['debtor']) : 0;
 $action = isset($_GET['action']) ? sanitize_text_field($_GET['action']) : '';
 $selected_debtor = null;
 if ($selected_debtor_id) {
+    $debtors_by_id = array();
     foreach ($debtors as $debtor) {
-        if ((int) $debtor->id === $selected_debtor_id) {
-            $selected_debtor = $debtor;
-            break;
-        }
+        $debtors_by_id[(int) $debtor->id] = $debtor;
     }
+    $selected_debtor = $debtors_by_id[$selected_debtor_id] ?? null;
 }
 
 // Generate unique page ID to break caching
