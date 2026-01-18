@@ -302,7 +302,6 @@ if (isset($_GET['pay_done']) && isset($_GET['pk'])) {
 
 // Get fresh data - use SQL_NO_CACHE and bypass WordPress object cache
 $wpdb->flush();  // Clear any cached query results
-$debt_tolerance = 0.01;
 $safe_debtors_table = esc_sql($debtors_table);
 $safe_trans_table = esc_sql($trans_table);
 $latest_debt_table = "(
@@ -314,19 +313,6 @@ $latest_debt_table = "(
         GROUP BY debtor_id
     ) latest ON latest.max_id = dt.id
 )";
-$wpdb->query(
-    $wpdb->prepare(
-        "UPDATE `{$safe_debtors_table}` d
-        INNER JOIN {$latest_debt_table} AS latest ON latest.debtor_id = d.id
-        SET d.total_debt = latest.balance_after,
-            d.updated_at = %s
-        WHERE d.status = 'active'
-            AND latest.balance_after IS NOT NULL
-            AND ABS(latest.balance_after - d.total_debt) > %f",
-        current_time('mysql'),
-        $debt_tolerance
-    )
-);
 $debtors = $wpdb->get_results(
     "SELECT SQL_NO_CACHE d.*, latest.balance_after AS current_balance
     FROM `{$safe_debtors_table}` d
