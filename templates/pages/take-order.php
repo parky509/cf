@@ -385,11 +385,11 @@ $products = CFI_Products::get_all();
         .receipt-info p { margin: 0.25rem 0; display: flex; justify-content: space-between; }
         .receipt-items { border-top: 1px solid #001943; border-bottom: 1px solid #001943; padding: 0.75rem 0; margin: 0.75rem 0; }
         .receipt-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; table-layout: fixed; border: 1px solid #001943; }
-        .receipt-table th { text-align: center; font-weight: 600; border: 1px solid #001943; padding: 0.3rem 0.2rem; background: #f1f5f9; }
-        .receipt-table td { padding: 0.3rem 0.2rem; text-align: center; border: 1px solid #001943; }
-        .receipt-table th:first-child, .receipt-table td:first-child { text-align: left; width: 44%; }
-        .receipt-table th:nth-child(2), .receipt-table td:nth-child(2) { text-align: right; width: 18%; }
-        .receipt-table th:nth-child(3), .receipt-table td:nth-child(3) { width: 12%; }
+        .receipt-table th { text-align: center; font-weight: 600; border: 1px solid #001943; padding: 0.45rem 0.3rem; background: #f1f5f9; }
+        .receipt-table td { padding: 0.45rem 0.3rem; text-align: center; border: 1px solid #001943; line-height: 1.3; }
+        .receipt-table th:first-child, .receipt-table td:first-child { text-align: left; width: 40%; }
+        .receipt-table th:nth-child(2), .receipt-table td:nth-child(2) { text-align: right; width: 20%; }
+        .receipt-table th:nth-child(3), .receipt-table td:nth-child(3) { width: 14%; }
         .receipt-table th:nth-child(4), .receipt-table td:nth-child(4) { text-align: right; width: 26%; font-weight: 600; }
         .receipt-table .discount-row td { font-size: 0.7rem; font-style: italic; background: #f8fafc; }
         .receipt-table .discount-label { text-align: left; }
@@ -1066,16 +1066,16 @@ function generateESCPOSReceipt() {
     text += line + '\n';
     
     // Items
-    text += 'ITEM        PRICE QTY TOTAL\n';
+    text += 'ITEM'.padEnd(10) + '|' + 'PRICE'.padEnd(7) + '|' + 'QTY'.padEnd(4) + '|' + 'TOTAL'.padEnd(8) + '\n';
     text += line + '\n';
     <?php if (isset($receipt_data['items'])) : foreach ($receipt_data['items'] as $item) : ?>
-    text += '<?php echo str_pad(substr(esc_js($item['product_name']), 0, 10), 10); ?> ' +
-        String(formatReceiptNumber('<?php echo esc_js($item['price']); ?>')).padStart(6) + ' ' +
-        String(formatReceiptNumber('<?php echo esc_js($item['quantity']); ?>')).padStart(3) + ' ' +
-        String(formatReceiptNumber('<?php echo esc_js($item['total']); ?>')).padStart(8) + '\n';
+    text += '<?php echo str_pad(substr(esc_js($item['product_name']), 0, 10), 10); ?>' +
+        '|' + String(formatReceiptNumber('<?php echo esc_js($item['price']); ?>')).padStart(7) +
+        '|' + String(formatReceiptNumber('<?php echo esc_js($item['quantity']); ?>')).padStart(4) +
+        '|' + String(formatReceiptNumber('<?php echo esc_js($item['total']); ?>')).padStart(8) + '\n';
     text += '  Discount:' +
         String('<?php echo esc_js($item['discount'] > 0 ? '-N' . cfi_format_receipt_value($item['discount']) : '-'); ?>')
-            .padStart(line.length - 11) + '\n';
+            .padStart(line.length - 11) + '\n\n';
     <?php endforeach; endif; ?>
     text += line + '\n';
     
@@ -1129,12 +1129,12 @@ async function printReceipt() {
     printWindow.document.write('.info-row .label{font-weight:600}');
     printWindow.document.write('.info-row .value{font-weight:900}');
     printWindow.document.write('.items-table{width:100%;margin:10px 0;border-collapse:collapse;font-size:12px;table-layout:fixed}');
-    printWindow.document.write('.items-table th{background:#000;color:#fff;padding:8px 4px;font-size:11px;font-weight:900;text-align:center;border:2px solid #000}');
-    printWindow.document.write('.items-table th:first-child{text-align:left;width:44%}');
-    printWindow.document.write('.items-table th:nth-child(2){width:18%}');
-    printWindow.document.write('.items-table th:nth-child(3){width:12%}');
+    printWindow.document.write('.items-table th{background:#000;color:#fff;padding:9px 4px;font-size:11px;font-weight:900;text-align:center;border:2px solid #000}');
+    printWindow.document.write('.items-table th:first-child{text-align:left;width:40%}');
+    printWindow.document.write('.items-table th:nth-child(2){width:20%}');
+    printWindow.document.write('.items-table th:nth-child(3){width:14%}');
     printWindow.document.write('.items-table th:nth-child(4){width:26%}');
-    printWindow.document.write('.items-table td{padding:8px 4px;border:2px solid #000;vertical-align:middle;font-size:11px}');
+    printWindow.document.write('.items-table td{padding:10px 4px;border:2px solid #000;vertical-align:middle;font-size:11px;line-height:1.4}');
     printWindow.document.write('.items-table td:first-child{text-align:left;font-weight:600}');
     printWindow.document.write('.items-table td:nth-child(2){text-align:right}');
     printWindow.document.write('.items-table td:nth-child(3){text-align:center}');
@@ -1257,7 +1257,7 @@ function generateTextReceipt() {
     lines.push(separator('-'));
     
     // Items Header
-    lines.push('ITEM        PRICE QTY TOTAL');
+    lines.push('ITEM'.padEnd(10) + '|' + 'PRICE'.padEnd(7) + '|' + 'QTY'.padEnd(4) + '|' + 'TOTAL'.padEnd(8));
     lines.push(separator('-'));
     
     // Items
@@ -1269,9 +1269,9 @@ function generateTextReceipt() {
     var amount = '<?php echo esc_js($item['total']); ?>';
     var discountDisplay = Number(discount) > 0 ? formatReceiptNumber(discount) : '-';
     lines.push(
-        itemName.padEnd(10) + ' ' +
-        formatReceiptNumber(price).padStart(6) + ' ' +
-        formatReceiptNumber(qty).padStart(3) + ' ' +
+        itemName.padEnd(10) + '|' +
+        formatReceiptNumber(price).padStart(7) + '|' +
+        formatReceiptNumber(qty).padStart(4) + '|' +
         formatReceiptNumber(amount).padStart(8)
     );
     lines.push(
@@ -1279,6 +1279,7 @@ function generateTextReceipt() {
         String(Number(discount) > 0 ? '-N' + formatReceiptNumber(discount) : '-')
             .padStart(lineWidth - 11)
     );
+    lines.push('');
     <?php endforeach; ?>
     
     lines.push(separator('-'));

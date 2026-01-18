@@ -115,11 +115,11 @@ foreach ($orders as $order) {
         .receipt-info p { margin: 0.2rem 0; display: flex; justify-content: space-between; }
         .receipt-items { border-top: 1px solid #333; border-bottom: 1px solid #333; margin: 0.75rem 0; padding: 0.75rem 0; }
         .receipt-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; table-layout: fixed; border: 1px solid #333; }
-        .receipt-table th { text-align: center; font-weight: bold; border: 1px solid #333; padding: 0.3rem 0.2rem; background: #f1f5f9; }
-        .receipt-table td { padding: 0.3rem 0.2rem; text-align: center; border: 1px solid #333; }
-        .receipt-table th:first-child, .receipt-table td:first-child { text-align: left; width: 44%; }
-        .receipt-table th:nth-child(2), .receipt-table td:nth-child(2) { text-align: right; width: 18%; }
-        .receipt-table th:nth-child(3), .receipt-table td:nth-child(3) { width: 12%; }
+        .receipt-table th { text-align: center; font-weight: bold; border: 1px solid #333; padding: 0.45rem 0.3rem; background: #f1f5f9; }
+        .receipt-table td { padding: 0.45rem 0.3rem; text-align: center; border: 1px solid #333; line-height: 1.3; }
+        .receipt-table th:first-child, .receipt-table td:first-child { text-align: left; width: 40%; }
+        .receipt-table th:nth-child(2), .receipt-table td:nth-child(2) { text-align: right; width: 20%; }
+        .receipt-table th:nth-child(3), .receipt-table td:nth-child(3) { width: 14%; }
         .receipt-table th:nth-child(4), .receipt-table td:nth-child(4) { text-align: right; width: 26%; font-weight: 600; }
         .receipt-table .discount-row td { font-size: 0.7rem; font-style: italic; background: #f8fafc; }
         .receipt-table .discount-label { text-align: left; }
@@ -442,18 +442,18 @@ function generateESCPOSReceiptFromOrder(order) {
     if (order.customer_name) text += 'Customer: ' + order.customer_name + '\n';
     text += 'Staff: ' + (order.staff_name || 'Unknown') + '\n';
     text += line + '\n';
-    text += 'ITEM        PRICE QTY TOTAL\n';
+    text += 'ITEM'.padEnd(10) + '|' + 'PRICE'.padEnd(7) + '|' + 'QTY'.padEnd(4) + '|' + 'TOTAL'.padEnd(8) + '\n';
     text += line + '\n';
     if (order.items && order.items.length > 0) {
         order.items.forEach(function(item) {
             var name = (item.product_name || '').substring(0, 10).padEnd(10);
-            var price = String(formatReceiptNumber(item.price)).padStart(6);
-            var qty = String(formatReceiptNumber(item.quantity)).padStart(3);
+            var price = String(formatReceiptNumber(item.price)).padStart(7);
+            var qty = String(formatReceiptNumber(item.quantity)).padStart(4);
             var total = String(formatReceiptNumber(item.total)).padStart(8);
             var discount = Number(item.discount) > 0 ? '-N' + formatReceiptNumber(item.discount) : '-';
             var discountLabel = '  Discount:';
-            text += name + ' ' + price + ' ' + qty + ' ' + total + '\n';
-            text += discountLabel + String(discount).padStart(line.length - discountLabel.length) + '\n';
+            text += name + '|' + price + '|' + qty + '|' + total + '\n';
+            text += discountLabel + String(discount).padStart(line.length - discountLabel.length) + '\n\n';
         });
     }
     text += line + '\n';
@@ -503,11 +503,11 @@ async function printReceipt() {
     printWindow.document.write('.receipt-info p{display:flex;justify-content:space-between;margin:6px 0;font-size:12px}');
     printWindow.document.write('.receipt-items{margin:10px 0;padding:8px 0;border-bottom:1px solid #000}');
     printWindow.document.write('.receipt-table{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed;border:1px solid #000}');
-    printWindow.document.write('.receipt-table th{border:1px solid #000;padding:4px 2px;text-align:center;font-weight:bold;background:#f1f1f1}');
-    printWindow.document.write('.receipt-table td{padding:4px 2px;text-align:center;border:1px solid #000}');
-    printWindow.document.write('.receipt-table th:first-child,.receipt-table td:first-child{text-align:left;width:44%}');
-    printWindow.document.write('.receipt-table th:nth-child(2),.receipt-table td:nth-child(2){text-align:right;width:18%}');
-    printWindow.document.write('.receipt-table th:nth-child(3),.receipt-table td:nth-child(3){width:12%}');
+    printWindow.document.write('.receipt-table th{border:1px solid #000;padding:6px 3px;text-align:center;font-weight:bold;background:#f1f1f1}');
+    printWindow.document.write('.receipt-table td{padding:6px 3px;text-align:center;border:1px solid #000;line-height:1.4}');
+    printWindow.document.write('.receipt-table th:first-child,.receipt-table td:first-child{text-align:left;width:40%}');
+    printWindow.document.write('.receipt-table th:nth-child(2),.receipt-table td:nth-child(2){text-align:right;width:20%}');
+    printWindow.document.write('.receipt-table th:nth-child(3),.receipt-table td:nth-child(3){width:14%}');
     printWindow.document.write('.receipt-table th:nth-child(4),.receipt-table td:nth-child(4){text-align:right;width:26%;font-weight:bold}');
     printWindow.document.write('.receipt-table .discount-row td{font-style:italic;background:#f8f8f8}');
     printWindow.document.write('.receipt-table .discount-label{text-align:left}');

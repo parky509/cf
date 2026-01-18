@@ -253,8 +253,8 @@ h+='<p style="margin:0 0 0.5rem"><strong>Order #:</strong> '+escapeHtml(o.order_
 h+='<p style="margin:0 0 0.5rem"><strong>Date:</strong> '+escapeHtml(o.order_date||'N/A')+'</p>';
 h+='<p style="margin:0 0 1rem"><strong>Customer:</strong> '+escapeHtml(o.customer_name||'N/A')+'</p>';
 if(o.items&&o.items.length>0){var totalDiscount=0;h+='<div style="margin:1rem 0"><table style="width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed;border:1px solid #001943">';
-h+='<tr style="font-weight:600;background:#f1f5f9"><th style="text-align:left;width:44%;border:1px solid #001943">Item</th><th style="text-align:right;width:18%;border:1px solid #001943">Price</th><th style="width:12%;border:1px solid #001943">Qty</th><th style="text-align:right;width:26%;border:1px solid #001943">Total</th></tr>';
-o.items.forEach(function(i){var discountDisplay=Number(i.discount)>0?'-₦'+formatReceiptNumber(i.discount):'-';totalDiscount+=Number(i.discount)||0;h+='<tr><td style="border:1px solid #001943">'+escapeHtml(i.product_name)+'</td><td style="text-align:right;border:1px solid #001943">₦'+formatReceiptNumber(i.price)+'</td><td style="text-align:center;border:1px solid #001943">'+formatReceiptNumber(i.quantity)+'</td><td style="text-align:right;border:1px solid #001943">₦'+formatReceiptNumber(i.total)+'</td></tr>';h+='<tr style="background:#f8fafc"><td style="border:1px solid #001943" colspan="3">Discount</td><td style="text-align:right;color:#c00;border:1px solid #001943">'+discountDisplay+'</td></tr>'});h+='</table></div>';
+h+='<tr style="font-weight:600;background:#f1f5f9"><th style="text-align:left;width:40%;border:1px solid #001943;padding:6px 3px">Item</th><th style="text-align:right;width:20%;border:1px solid #001943;padding:6px 3px">Price</th><th style="width:14%;border:1px solid #001943;padding:6px 3px">Qty</th><th style="text-align:right;width:26%;border:1px solid #001943;padding:6px 3px">Total</th></tr>';
+o.items.forEach(function(i){var discountDisplay=Number(i.discount)>0?'-₦'+formatReceiptNumber(i.discount):'-';totalDiscount+=Number(i.discount)||0;h+='<tr><td style="border:1px solid #001943;padding:6px 3px">'+escapeHtml(i.product_name)+'</td><td style="text-align:right;border:1px solid #001943;padding:6px 3px">₦'+formatReceiptNumber(i.price)+'</td><td style="text-align:center;border:1px solid #001943;padding:6px 3px">'+formatReceiptNumber(i.quantity)+'</td><td style="text-align:right;border:1px solid #001943;padding:6px 3px">₦'+formatReceiptNumber(i.total)+'</td></tr>';h+='<tr style="background:#f8fafc"><td style="border:1px solid #001943;padding:6px 3px" colspan="3">Discount</td><td style="text-align:right;color:#c00;border:1px solid #001943;padding:6px 3px">'+discountDisplay+'</td></tr>'});h+='</table></div>';
 h+='<p style="display:flex;justify-content:space-between;margin:0.5rem 0;font-weight:600;color:#c00"><span>Total Discount:</span><span>-₦'+formatReceiptNumber(totalDiscount)+'</span></p>';}
 h+='<div class="order-total" style="font-weight:700"><span>Total:</span><span>₦'+formatReceiptNumber(o.grand_total||0)+'</span></div></div>';
 body.innerHTML=h}else{body.innerHTML='<div style="text-align:center;padding:2rem;color:#991b1b">Failed to load</div>'}
@@ -350,17 +350,17 @@ function generateOrderESCPOS(o) {
     text += 'Time: ' + (o.order_time||'N/A') + '\n';
     text += 'Customer: ' + (o.customer_name||'N/A') + '\n';
     text += line + '\n';
-    text += 'ITEM        PRICE QTY TOTAL\n';
+    text += 'ITEM'.padEnd(10) + '|' + 'PRICE'.padEnd(7) + '|' + 'QTY'.padEnd(4) + '|' + 'TOTAL'.padEnd(8) + '\n';
     text += line + '\n';
     if(o.items&&o.items.length>0){o.items.forEach(function(i){
         var name = (i.product_name || '').substring(0, 10).padEnd(10);
-        var price = String(formatReceiptNumber(i.price)).padStart(6);
-        var qty = String(formatReceiptNumber(i.quantity)).padStart(3);
+        var price = String(formatReceiptNumber(i.price)).padStart(7);
+        var qty = String(formatReceiptNumber(i.quantity)).padStart(4);
         var amt = String(formatReceiptNumber(i.total)).padStart(8);
         var discount = i.discount > 0 ? '-N' + formatReceiptNumber(i.discount) : '-';
         var discountLabel = '  Discount:';
-        text += name + ' ' + price + ' ' + qty + ' ' + amt + '\n';
-        text += discountLabel + String(discount).padStart(line.length - discountLabel.length) + '\n';
+        text += name + '|' + price + '|' + qty + '|' + amt + '\n';
+        text += discountLabel + String(discount).padStart(line.length - discountLabel.length) + '\n\n';
     })}
     text += line + '\n';
     var totalDiscount=0;
@@ -429,11 +429,11 @@ h+='.header p{font-size:11px;margin:0}';
 h+='.info{margin:10px 0;padding:8px 0;border-bottom:1px dashed #000}';
 h+='.info p{display:flex;justify-content:space-between;margin:6px 0;font-size:12px}';
  h+='.items-table{width:100%;margin:10px 0;border-collapse:collapse;font-size:11px;table-layout:fixed;border:1px solid #000}';
- h+='.items-table th{border:1px solid #000;padding:4px 2px;text-align:center;font-weight:bold;background:#f1f1f1}';
- h+='.items-table td{padding:4px 2px;text-align:center;border:1px solid #000}';
- h+='.items-table th:first-child,.items-table td:first-child{text-align:left;width:44%}';
- h+='.items-table th:nth-child(2),.items-table td:nth-child(2){text-align:right;width:18%}';
- h+='.items-table th:nth-child(3),.items-table td:nth-child(3){width:12%}';
+ h+='.items-table th{border:1px solid #000;padding:6px 3px;text-align:center;font-weight:bold;background:#f1f1f1}';
+ h+='.items-table td{padding:6px 3px;text-align:center;border:1px solid #000;line-height:1.4}';
+ h+='.items-table th:first-child,.items-table td:first-child{text-align:left;width:40%}';
+ h+='.items-table th:nth-child(2),.items-table td:nth-child(2){text-align:right;width:20%}';
+ h+='.items-table th:nth-child(3),.items-table td:nth-child(3){width:14%}';
  h+='.items-table th:nth-child(4),.items-table td:nth-child(4){text-align:right;width:26%;font-weight:bold}';
  h+='.items-table .discount-row td{font-style:italic;background:#f5f5f5}';
  h+='.items-table .discount-label{text-align:left}';
@@ -488,7 +488,7 @@ var h='<!DOCTYPE html><html><head><title>Print Receipt</title>';
 h+='<style>';
 h+='@page{size:80mm auto;margin:0}';
 h+='*{margin:0;padding:0;box-sizing:border-box}';
-h+='body{font-family:"Courier New",Courier,monospace;font-size:13px;width:72mm;max-width:72mm;margin:0 auto;padding:5mm;line-height:1.4;color:#000}';
+ h+='body{font-family:"Courier New",Courier,monospace;font-size:13px;width:80mm;max-width:80mm;margin:0 auto;padding:3mm;line-height:1.4;color:#000}';
 h+='.header{text-align:center;padding:8px 0;border-bottom:2px dashed #000;margin-bottom:10px}';
 h+='.header h2{font-size:16px;font-weight:bold;margin:0 0 5px}';
 h+='.header p{font-size:11px;margin:0}';
