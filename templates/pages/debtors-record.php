@@ -302,7 +302,37 @@ if (isset($_GET['pay_done']) && isset($_GET['pk'])) {
 
 // Get fresh data - use SQL_NO_CACHE and bypass WordPress object cache
 $wpdb->flush();  // Clear any cached query results
-$debtors = $wpdb->get_results("SELECT SQL_NO_CACHE * FROM `{$debtors_table}` WHERE `status` = 'active' ORDER BY `name` ASC");
+$debtors = $wpdb->get_results(
+    "SELECT SQL_NO_CACHE d.*, (
+        SELECT dt.balance_after
+        FROM `{$trans_table}` dt
+        WHERE dt.debtor_id = d.id
+        ORDER BY dt.id DESC
+        LIMIT 1
+    ) AS current_debt
+    FROM `{$debtors_table}` d
+    WHERE d.status = 'active'
+    ORDER BY d.name ASC"
+);
+$debtor_updates = array();
+foreach ($debtors as $debtor) {
+    if ($debtor->current_debt !== null) {
+        $current_debt = floatval($debtor->current_debt);
+        if (abs($current_debt - floatval($debtor->total_debt)) > 0.01) {
+            $debtor_updates[$debtor->id] = $current_debt;
+        }
+        $debtor->total_debt = $current_debt;
+    }
+}
+foreach ($debtor_updates as $debtor_id => $current_debt) {
+    $wpdb->update(
+        $debtors_table,
+        array('total_debt' => $current_debt),
+        array('id' => $debtor_id),
+        array('%f'),
+        array('%d')
+    );
+}
 $products = CFI_Products::get_all();
 
 $selected_debtor_id = isset($_GET['debtor']) ? intval($_GET['debtor']) : 0;
@@ -310,9 +340,21 @@ $action = isset($_GET['action']) ? sanitize_text_field($_GET['action']) : '';
 $selected_debtor = null;
 if ($selected_debtor_id) {
     $selected_debtor = $wpdb->get_row($wpdb->prepare(
-        "SELECT SQL_NO_CACHE * FROM `{$debtors_table}` WHERE `id` = %d LIMIT 1",
+        "SELECT SQL_NO_CACHE d.*, (
+            SELECT dt.balance_after
+            FROM `{$trans_table}` dt
+            WHERE dt.debtor_id = d.id
+            ORDER BY dt.id DESC
+            LIMIT 1
+        ) AS current_debt
+        FROM `{$debtors_table}` d
+        WHERE d.id = %d
+        LIMIT 1",
         $selected_debtor_id
     ));
+    if ($selected_debtor && $selected_debtor->current_debt !== null) {
+        $selected_debtor->total_debt = floatval($selected_debtor->current_debt);
+    }
 }
 
 // Generate unique page ID to break caching
