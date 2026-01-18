@@ -678,7 +678,7 @@ $page_load_id = time() . '_' . mt_rand(100000, 999999);
     var ajaxUrl = '<?php echo admin_url('admin-ajax.php'); ?>';
     var nonce = '<?php echo wp_create_nonce('cfi_nonce'); ?>';
     var summaryDate = '<?php echo esc_js($today); ?>';
-    var summaryContainer = document.querySelector('.cfi-financial-container');
+    var summaryContainer = null;
     var refreshToken = 0;
     
     function setSummaryLoading(isLoading) {

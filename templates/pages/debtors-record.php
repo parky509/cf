@@ -862,6 +862,7 @@ window.addEventListener('pageshow', function(event) {
         navEntry = window.performance.getEntriesByType('navigation')[0];
     }
     var isBackForward = false;
+    // Some browsers use back_forward while others expose back-forward.
     if (navEntry && typeof navEntry.type === 'string') {
         isBackForward = navEntry.type === 'back_forward' || navEntry.type === 'back-forward';
     }
