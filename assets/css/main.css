@@ -1,0 +1,1396 @@
+/**
+ * Chinemerem Foods Inventory - Main Styles
+ * 
+ * Color Scheme:
+ * - Primary: #001943 (Deep Navy Blue)
+ * - Background: #ffffff (White)
+ * 
+ * Performance Optimized - Google Fonts loaded via PHP with preconnect
+ */
+
+/* Subtle Sparkle Animation */
+@keyframes subtle-sparkle {
+    0%, 100% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+@keyframes gentle-pulse {
+    0%, 100% {
+        box-shadow: 0 4px 15px rgba(0, 25, 67, 0.3);
+    }
+    50% {
+        box-shadow: 0 4px 20px rgba(0, 25, 67, 0.5), 0 0 30px rgba(0, 41, 96, 0.2);
+    }
+}
+
+@keyframes text-shimmer {
+    0% {
+        background-position: -200% center;
+    }
+    100% {
+        background-position: 200% center;
+    }
+}
+
+:root {
+    --cfi-primary: #001943 !important;
+    --cfi-primary-light: #002960 !important;
+    --cfi-secondary: #001943 !important;
+    --cfi-secondary-light: #002960 !important;
+    --cfi-accent: #001943 !important;
+    --cfi-accent-light: #002960 !important;
+    --cfi-accent-dark: #001030 !important;
+    --cfi-success: #059669 !important;
+    --cfi-success-light: #10b981 !important;
+    --cfi-warning: #d97706 !important;
+    --cfi-danger: #dc2626 !important;
+    --cfi-danger-light: #ef4444 !important;
+    --cfi-white: #ffffff !important;
+    --cfi-light: #f1f5f9 !important;
+    --cfi-lighter: #f8fafc !important;
+    --cfi-gray: #64748b !important;
+    --cfi-gray-light: #94a3b8 !important;
+    --cfi-dark: #0f172a !important;
+    --cfi-border: #e2e8f0 !important;
+    --cfi-border-dark: #cbd5e1 !important;
+    --cfi-shadow: rgba(10, 22, 40, 0.12) !important;
+    --cfi-shadow-lg: rgba(10, 22, 40, 0.2) !important;
+    --cfi-glass-bg: rgba(255, 255, 255, 0.85) !important;
+    --cfi-glass-border: rgba(30, 58, 95, 0.25) !important;
+    --cfi-glass-shadow: 0 8px 32px rgba(10, 22, 40, 0.15), 0 0 0 1px rgba(30, 58, 95, 0.08) !important;
+    --cfi-radius: 16px !important;
+    --cfi-radius-sm: 8px !important;
+    --cfi-radius-lg: 24px !important;
+    --cfi-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    --cfi-gradient-primary: linear-gradient(135deg, #001943 0%, #002960 100%) !important;
+    --cfi-gradient-accent: linear-gradient(135deg, #001943 0%, #001030 100%) !important;
+    --cfi-gradient-glass: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(241,245,249,0.9) 100%) !important;
+}
+
+/* Reset & Base */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* DESKTOP VIEW ON MOBILE - Forces desktop layout, auto-scales to fit screen */
+html {
+    width: 1200px !important;
+    min-width: 1200px !important;
+    overflow-x: hidden !important;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    background: var(--cfi-white);
+    color: var(--cfi-dark);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    width: 1200px !important;
+    min-width: 1200px !important;
+    transform-origin: top left;
+    overflow-x: hidden !important;
+}
+
+/* Mobile Auto-Scale - Desktop view fits to screen width automatically */
+@media screen and (max-width: 1200px) {
+    html, body {
+        width: 1200px !important;
+        min-width: 1200px !important;
+    }
+    
+    body {
+        transform: scale(calc(100vw / 1200));
+        transform-origin: top left;
+    }
+    
+    /* Fallback for older browsers */
+    @supports not (transform: scale(1)) {
+        html {
+            zoom: 0.333;
+        }
+    }
+}
+
+/* Global Font Awesome Fix - Force icons to display */
+.fas, .fa, .far, .fab,
+.cfi-main .fas, .cfi-main .fa,
+.cfi-header .fas, .cfi-footer .fas,
+body .fas, body .fa, body .far, body .fab,
+[class*="fa-"] {
+    font-family: "Font Awesome 6 Free", "Font Awesome 5 Free", FontAwesome !important;
+    font-weight: 900 !important;
+    font-style: normal !important;
+    display: inline-block !important;
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+    text-rendering: auto !important;
+}
+
+/* GLOBAL DARK HEADER STYLES - Ensures all text visible on dark backgrounds */
+.cfi-page-header,
+.cfi-form-header,
+[class*="header"][style*="background"],
+.cfi-order-header,
+.cfi-debtor-header {
+    color: white !important;
+}
+
+.cfi-page-header h1,
+.cfi-page-header h2,
+.cfi-page-header h3,
+.cfi-page-header h4,
+.cfi-page-header p,
+.cfi-page-header span,
+.cfi-page-header a,
+.cfi-page-header i,
+.cfi-form-header h1,
+.cfi-form-header h2,
+.cfi-form-header h3,
+.cfi-form-header p,
+.cfi-form-header span,
+.cfi-form-header a,
+.cfi-form-header i {
+    color: #ffffff !important;
+    font-size: 0.75rem !important;
+}
+
+.cfi-page-header h1,
+.cfi-form-header h1 {
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    margin: 0 !important;
+}
+
+/* Sleek button styles for headers */
+.cfi-btn-history {
+    background: #ffffff !important;
+    color: #001943 !important;
+    border: 2px solid #ffffff !important;
+    font-weight: 700 !important;
+    font-size: 0.65rem !important;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3) !important;
+    padding: 0.4rem 0.6rem !important;
+}
+
+.cfi-btn-history i {
+    color: #001943 !important;
+    font-size: 0.65rem !important;
+}
+
+.cfi-btn-history:hover {
+    background: #f0f4f8 !important;
+    transform: translateY(-2px) !important;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6,
+body h1, body h2, body h3, body h4, body h5, body h6,
+.cfi-main h1, .cfi-main h2, .cfi-main h3 {
+    color: #001943 !important;
+    font-weight: 700 !important;
+    line-height: 1.3 !important;
+    margin-bottom: 0.5em !important;
+}
+
+/* Subtle shimmer effect for page titles */
+.cfi-page-title h1,
+.cfi-main .cfi-page-title h1 {
+    background: linear-gradient(
+        90deg, 
+        #001943 0%, 
+        #001943 40%, 
+        #003980 50%, 
+        #001943 60%, 
+        #001943 100%
+    ) !important;
+    background-size: 200% auto !important;
+    background-clip: text !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    animation: text-shimmer 4s linear infinite !important;
+}
+
+h1 { font-size: 2rem !important; }
+h2 { font-size: 1.75rem !important; }
+h3 { font-size: 1.5rem !important; }
+h4 { font-size: 1.25rem !important; }
+h5 { font-size: 1.1rem !important; }
+h6 { font-size: 1rem !important; }
+
+p { margin-bottom: 1rem; }
+
+a {
+    color: var(--cfi-accent);
+    text-decoration: none;
+    transition: var(--cfi-transition);
+}
+
+a:hover {
+    color: var(--cfi-primary);
+}
+
+/* Glassmorphism Card - More visible without hover */
+.cfi-glass,
+body .cfi-glass {
+    background: rgba(255, 255, 255, 0.75) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border-radius: 16px !important;
+    border: 2px solid rgba(30, 58, 95, 0.2) !important;
+    box-shadow: 
+        0 8px 32px rgba(10, 22, 40, 0.18),
+        0 4px 16px rgba(30, 58, 95, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+    padding: 1.5rem !important;
+    transition: all 0.3s ease !important;
+}
+
+.cfi-glass:hover {
+    box-shadow: 
+        0 16px 48px rgba(10, 22, 40, 0.22),
+        0 8px 24px rgba(30, 58, 95, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+    transform: translateY(-3px);
+    border-color: rgba(37, 99, 235, 0.3) !important;
+}
+
+/* Buttons - With high specificity to override theme styles */
+.cfi-btn,
+body .cfi-btn,
+.cfi-main .cfi-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.5rem !important;
+    padding: 0.5rem 1rem !important;
+    font-size: 0.875rem !important;
+    font-weight: 600 !important;
+    border-radius: 8px !important;
+    border: none !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    text-decoration: none !important;
+    white-space: nowrap !important;
+    line-height: 1.5 !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.cfi-btn:disabled {
+    opacity: 0.6 !important;
+    cursor: not-allowed !important;
+}
+
+.cfi-btn-primary,
+body .cfi-btn-primary,
+.cfi-main .cfi-btn-primary,
+.cfi-card .cfi-btn-primary {
+    background: linear-gradient(135deg, #001943 0%, #002960 50%, #001943 100%) !important;
+    background-size: 200% 200% !important;
+    color: #ffffff !important;
+    animation: subtle-sparkle 3s ease infinite !important;
+    box-shadow: 0 4px 15px rgba(0, 25, 67, 0.3) !important;
+}
+
+.cfi-btn-primary:hover:not(:disabled) {
+    background: linear-gradient(135deg, #002960 0%, #003980 50%, #002960 100%) !important;
+    background-size: 200% 200% !important;
+    color: #ffffff !important;
+    animation: gentle-pulse 2s ease infinite, subtle-sparkle 2s ease infinite !important;
+    transform: translateY(-2px) !important;
+}
+
+.cfi-btn-secondary,
+body .cfi-btn-secondary,
+.cfi-main .cfi-btn-secondary {
+    background: linear-gradient(135deg, #001943 0%, #002960 50%, #001943 100%) !important;
+    background-size: 200% 200% !important;
+    color: #ffffff !important;
+    animation: subtle-sparkle 4s ease infinite !important;
+    box-shadow: 0 4px 15px rgba(0, 25, 67, 0.3) !important;
+}
+
+.cfi-btn-secondary:hover:not(:disabled) {
+    background: linear-gradient(135deg, #002960 0%, #003980 50%, #002960 100%) !important;
+    background-size: 200% 200% !important;
+    color: #ffffff !important;
+    animation: gentle-pulse 2s ease infinite !important;
+    transform: translateY(-2px) !important;
+}
+
+.cfi-btn-outline,
+body .cfi-btn-outline {
+    background: transparent !important;
+    color: #001943 !important;
+    border: 2px solid #001943 !important;
+}
+
+.cfi-btn-outline:hover:not(:disabled) {
+    background: #001943 !important;
+    color: #ffffff !important;
+}
+
+.cfi-btn-success,
+body .cfi-btn-success {
+    background: #059669 !important;
+    background-color: #059669 !important;
+    color: #ffffff !important;
+}
+
+.cfi-btn-danger,
+body .cfi-btn-danger {
+    background: #dc2626 !important;
+    background-color: #dc2626 !important;
+    color: #ffffff !important;
+}
+
+.cfi-btn-sm {
+    padding: 0.375rem 0.75rem !important;
+    font-size: 0.8rem !important;
+}
+
+.cfi-btn-lg {
+    padding: 0.75rem 1.5rem !important;
+    font-size: 1rem !important;
+}
+
+/* Forms */
+.cfi-form-group {
+    margin-bottom: 1rem;
+}
+
+.cfi-form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--cfi-primary);
+}
+
+.cfi-input,
+.cfi-select,
+.cfi-textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border: 2px solid var(--cfi-border);
+    border-radius: var(--cfi-radius-sm);
+    background: var(--cfi-white);
+    color: var(--cfi-dark);
+    transition: var(--cfi-transition);
+}
+
+.cfi-input:focus,
+.cfi-select:focus,
+.cfi-textarea:focus {
+    outline: none;
+    border-color: var(--cfi-accent);
+    box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.2);
+}
+
+.cfi-input::placeholder {
+    color: var(--cfi-gray);
+}
+
+.cfi-input[readonly] {
+    background: var(--cfi-light);
+    color: var(--cfi-gray);
+}
+
+.cfi-textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+/* Checkbox & Radio */
+.cfi-checkbox,
+.cfi-radio {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.cfi-checkbox input,
+.cfi-radio input {
+    width: 1.25rem;
+    height: 1.25rem;
+    accent-color: var(--cfi-accent);
+    cursor: pointer;
+}
+
+/* Tables - Full width without horizontal scroll */
+.cfi-table-wrapper {
+    overflow-x: visible !important;
+    margin-bottom: 1.5rem;
+}
+
+.cfi-table,
+body .cfi-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    background: #ffffff !important;
+    border-radius: 16px !important;
+    overflow: hidden !important;
+    table-layout: auto !important;
+}
+
+.cfi-table th,
+.cfi-table td {
+    padding: 0.5rem 0.4rem !important;
+    text-align: left !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    font-size: 0.8rem !important;
+    word-wrap: break-word !important;
+}
+
+.cfi-table th {
+    background: #0a1628 !important;
+    background-color: #0a1628 !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    white-space: normal !important;
+    font-size: 0.75rem !important;
+    padding: 0.6rem 0.4rem !important;
+}
+
+.cfi-table tbody tr:hover {
+    background: #f1f5f9 !important;
+}
+
+.cfi-table tbody tr:last-child td {
+    border-bottom: none !important;
+}
+
+/* Table inputs - compact for fitting in cells */
+.cfi-table .cfi-input,
+.cfi-table input[type="number"],
+.cfi-table input[type="text"] {
+    width: 100% !important;
+    min-width: 50px !important;
+    max-width: 100% !important;
+    padding: 0.3rem 0.4rem !important;
+    font-size: 0.75rem !important;
+    text-align: right !important;
+}
+
+/* Responsive Table - Cards on Mobile */
+@media (max-width: 768px) {
+    .cfi-table-wrapper {
+        overflow-x: visible !important;
+    }
+    
+    .cfi-table,
+    .cfi-table-responsive {
+        display: block !important;
+        width: 100% !important;
+    }
+    
+    .cfi-table-responsive thead,
+    .cfi-table thead {
+        display: none !important;
+    }
+    
+    .cfi-table-responsive tbody,
+    .cfi-table tbody {
+        display: block !important;
+    }
+    
+    .cfi-table-responsive tbody tr,
+    .cfi-table tbody tr {
+        display: block !important;
+        margin-bottom: 1rem !important;
+        background: rgba(255, 255, 255, 0.85) !important;
+        border-radius: 12px !important;
+        padding: 1rem !important;
+        box-shadow: 0 4px 16px rgba(10, 22, 40, 0.12) !important;
+        border: 2px solid rgba(30, 58, 95, 0.15) !important;
+    }
+    
+    .cfi-table-responsive tbody td,
+    .cfi-table tbody td {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 0.5rem 0 !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        text-align: right !important;
+        font-size: 0.85rem !important;
+    }
+    
+    .cfi-table-responsive tbody td:last-child,
+    .cfi-table tbody td:last-child {
+        border-bottom: none !important;
+    }
+    
+    .cfi-table-responsive tbody td::before,
+    .cfi-table tbody td::before {
+        content: attr(data-label) !important;
+        font-weight: 600 !important;
+        color: #0a1628 !important;
+        text-align: left !important;
+        flex: 1 !important;
+    }
+    
+    .cfi-table tbody td input,
+    .cfi-table-responsive tbody td input {
+        max-width: 100px !important;
+        text-align: right !important;
+    }
+}
+
+/* Header */
+.cfi-header {
+    background: var(--cfi-glass-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--cfi-border);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    padding: 0.75rem 1.5rem;
+}
+
+.cfi-header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1440px;
+    margin: 0 auto;
+}
+
+.cfi-header-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.cfi-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: var(--cfi-primary);
+}
+
+.cfi-logo img {
+    width: 40px;
+    height: 40px;
+}
+
+/* Hamburger menu - HIDDEN */
+.cfi-hamburger {
+    display: none !important;
+    visibility: hidden !important;
+}
+
+.cfi-nav ul {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    list-style: none;
+}
+
+.cfi-nav a {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    color: var(--cfi-dark);
+    font-weight: 500;
+    border-radius: var(--cfi-radius-sm);
+    transition: var(--cfi-transition);
+}
+
+.cfi-nav a:hover {
+    background: var(--cfi-light);
+    color: var(--cfi-accent);
+}
+
+.cfi-nav i {
+    font-size: 1rem;
+}
+
+.cfi-header-right {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.cfi-user-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.cfi-user-name {
+    font-weight: 600;
+    color: var(--cfi-primary);
+}
+
+.cfi-user-role {
+    font-size: 0.75rem;
+    color: var(--cfi-gray);
+}
+
+.cfi-datetime {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.cfi-date {
+    font-size: 0.875rem;
+    color: var(--cfi-dark);
+}
+
+.cfi-time {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--cfi-primary);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* Footer */
+.cfi-footer {
+    background: var(--cfi-primary);
+    color: var(--cfi-white);
+    padding: 1.5rem;
+    text-align: center;
+    margin-top: auto;
+}
+
+.cfi-footer p {
+    margin: 0.25rem 0;
+    font-size: 0.875rem;
+}
+
+.cfi-footer a {
+    color: var(--cfi-white);
+    text-decoration: underline;
+}
+
+/* Mobile Navigation - REMOVED ENTIRELY */
+.cfi-mobile-nav {
+    display: none !important;
+}
+
+/* Scroll to Top */
+.cfi-scroll-top {
+    position: fixed;
+    bottom: 100px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    background: var(--cfi-accent);
+    color: var(--cfi-white);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--cfi-transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cfi-scroll-top.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.cfi-scroll-top:hover {
+    background: var(--cfi-primary);
+    transform: scale(1.1);
+}
+
+.cfi-scroll-progress {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.cfi-scroll-track {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.3);
+    stroke-width: 4;
+}
+
+.cfi-scroll-indicator {
+    fill: none;
+    stroke: var(--cfi-white);
+    stroke-width: 4;
+    stroke-dasharray: 283;
+    stroke-dashoffset: 283;
+    stroke-linecap: round;
+}
+
+/* Main Content */
+.cfi-main {
+    min-height: calc(100vh - 200px);
+    padding: 2rem 1.5rem;
+    padding-bottom: 100px;
+}
+
+.cfi-container {
+    max-width: 1440px;
+    margin: 0 auto;
+}
+
+/* Page Title */
+.cfi-page-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.cfi-page-title h1 {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0;
+}
+
+.cfi-page-title h1 i {
+    color: var(--cfi-accent);
+}
+
+/* Dashboard Cards Grid */
+.cfi-cards-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+    gap: 1.5rem !important;
+    margin-bottom: 2rem !important;
+}
+
+.cfi-card,
+body .cfi-card,
+.cfi-main .cfi-card {
+    background: rgba(255, 255, 255, 0.8) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border-radius: 16px !important;
+    border: 2px solid rgba(30, 58, 95, 0.2) !important;
+    box-shadow: 
+        0 8px 32px rgba(10, 22, 40, 0.15),
+        0 4px 16px rgba(30, 58, 95, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+    padding: 1.5rem !important;
+    transition: all 0.3s ease !important;
+    text-decoration: none !important;
+    color: #0f172a !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1rem !important;
+}
+
+.cfi-card:hover {
+    transform: translateY(-5px) !important;
+    box-shadow: 
+        0 16px 48px rgba(10, 22, 40, 0.2),
+        0 8px 24px rgba(30, 58, 95, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+    border-color: rgba(37, 99, 235, 0.35) !important;
+}
+
+.cfi-card-icon,
+body .cfi-card-icon {
+    width: 56px !important;
+    height: 56px !important;
+    border-radius: 14px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 1.5rem !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Font Awesome icon fix with high specificity */
+.cfi-card-icon i,
+.cfi-card-icon .fas,
+.cfi-card-icon .fa,
+.cfi-card-icon .far,
+.cfi-card-icon .fab,
+body .cfi-card-icon i,
+.cfi-main .cfi-card-icon i {
+    font-family: "Font Awesome 6 Free", "Font Awesome 5 Free", FontAwesome !important;
+    font-weight: 900 !important;
+    font-style: normal !important;
+    font-size: 1.5rem !important;
+    color: #ffffff !important;
+    display: inline-block !important;
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+}
+
+.cfi-card-title,
+body .cfi-card-title {
+    font-size: 1.125rem !important;
+    font-weight: 700 !important;
+    color: #0a1628 !important;
+    margin: 0 !important;
+}
+
+.cfi-card-description,
+body .cfi-card-description {
+    font-size: 0.875rem !important;
+    color: #64748b !important;
+    margin: 0 !important;
+    line-height: 1.5 !important;
+}
+
+.cfi-card-btn {
+    margin-top: auto !important;
+}
+
+/* Login Page */
+.cfi-login-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: linear-gradient(135deg, var(--cfi-primary) 0%, var(--cfi-secondary) 100%);
+}
+
+.cfi-login-box {
+    background: var(--cfi-glass-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: var(--cfi-radius);
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.cfi-login-logo {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.cfi-login-logo img {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 1rem;
+}
+
+.cfi-login-logo h1 {
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+.cfi-login-form .cfi-form-group {
+    margin-bottom: 1.5rem;
+}
+
+.cfi-login-form .cfi-btn {
+    width: 100%;
+    padding: 0.875rem;
+    font-size: 1rem;
+}
+
+/* Password Toggle */
+.cfi-password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.cfi-password-wrapper .cfi-input {
+    padding-right: 3rem;
+    width: 100%;
+}
+
+.cfi-password-toggle {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    cursor: pointer;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease;
+}
+
+.cfi-password-toggle:hover {
+    color: #0a1628;
+}
+
+.cfi-password-toggle i {
+    font-size: 1rem;
+}
+
+/* Order Table */
+.cfi-order-table .cfi-input {
+    min-width: 80px;
+    text-align: right;
+}
+
+.cfi-order-total {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    background: var(--cfi-light);
+    border-radius: var(--cfi-radius-sm);
+    margin-top: 1rem;
+}
+
+.cfi-order-total-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.cfi-order-total-label {
+    font-size: 0.75rem;
+    color: var(--cfi-gray);
+    text-transform: uppercase;
+}
+
+.cfi-order-total-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--cfi-primary);
+}
+
+/* Payment Section */
+.cfi-payment-section {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: var(--cfi-light);
+    border-radius: var(--cfi-radius);
+}
+
+.cfi-payment-methods {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.cfi-payment-method {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: var(--cfi-white);
+    border: 2px solid var(--cfi-border);
+    border-radius: var(--cfi-radius-sm);
+    cursor: pointer;
+    transition: var(--cfi-transition);
+}
+
+.cfi-payment-method:hover {
+    border-color: var(--cfi-accent);
+}
+
+.cfi-payment-method.active {
+    border-color: var(--cfi-accent);
+    background: rgba(49, 130, 206, 0.1);
+}
+
+.cfi-payment-method input {
+    display: none;
+}
+
+.cfi-bank-options {
+    display: none;
+    margin-top: 1rem;
+    padding: 1rem;
+    background: var(--cfi-white);
+    border-radius: var(--cfi-radius-sm);
+}
+
+.cfi-bank-options.visible {
+    display: block;
+}
+
+.cfi-bank-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    cursor: pointer;
+}
+
+.cfi-split-payment {
+    display: none;
+    margin-top: 1rem;
+    gap: 1rem;
+}
+
+.cfi-split-payment.visible {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+/* Confirmation Modal */
+.cfi-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--cfi-transition);
+}
+
+.cfi-modal-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.cfi-modal {
+    background: var(--cfi-white);
+    border-radius: var(--cfi-radius);
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    transform: scale(0.9);
+    transition: var(--cfi-transition);
+}
+
+.cfi-modal-overlay.visible .cfi-modal {
+    transform: scale(1);
+}
+
+.cfi-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--cfi-border);
+}
+
+.cfi-modal-header h3 {
+    margin: 0;
+}
+
+.cfi-modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--cfi-gray);
+}
+
+.cfi-modal-body {
+    padding: 1.5rem;
+}
+
+.cfi-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    padding: 1.5rem;
+    border-top: 1px solid var(--cfi-border);
+}
+
+/* Debtor Cards */
+.cfi-debtor-card {
+    cursor: pointer;
+}
+
+.cfi-debtor-balance {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--cfi-danger);
+}
+
+.cfi-debtor-name {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--cfi-primary);
+}
+
+/* Calendar */
+.cfi-calendar {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+
+.cfi-calendar-header {
+    text-align: center;
+    padding: 0.5rem;
+    font-weight: 600;
+    color: var(--cfi-primary);
+    background: var(--cfi-light);
+}
+
+.cfi-calendar-day {
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    background: var(--cfi-white);
+    border: 1px solid var(--cfi-border);
+    border-radius: var(--cfi-radius-sm);
+    cursor: pointer;
+    transition: var(--cfi-transition);
+}
+
+.cfi-calendar-day:hover:not(.disabled) {
+    border-color: var(--cfi-accent);
+}
+
+.cfi-calendar-day.today {
+    border-color: var(--cfi-accent);
+    background: rgba(49, 130, 206, 0.1);
+}
+
+.cfi-calendar-day.reconciled {
+    background: var(--cfi-success);
+    color: var(--cfi-white);
+}
+
+.cfi-calendar-day.partial {
+    background: var(--cfi-warning);
+    color: var(--cfi-white);
+}
+
+.cfi-calendar-day.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Filter Section */
+.cfi-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: var(--cfi-light);
+    border-radius: var(--cfi-radius-sm);
+}
+
+.cfi-filter-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.cfi-filter-group label {
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.cfi-filter-group .cfi-input,
+.cfi-filter-group .cfi-select {
+    width: auto;
+    min-width: 150px;
+}
+
+/* Toast Notifications */
+.cfi-toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10001;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.cfi-toast {
+    padding: 1rem 1.5rem;
+    border-radius: var(--cfi-radius-sm);
+    color: var(--cfi-white);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.cfi-toast-success { background: var(--cfi-success); }
+.cfi-toast-error { background: var(--cfi-danger); }
+.cfi-toast-warning { background: var(--cfi-warning); }
+.cfi-toast-info { background: var(--cfi-accent); }
+
+/* Loading */
+.cfi-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.cfi-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--cfi-border);
+    border-top-color: var(--cfi-accent);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Offline Banner */
+.cfi-offline-banner {
+    position: fixed;
+    bottom: 70px;
+    left: 0;
+    right: 0;
+    background: var(--cfi-warning);
+    color: var(--cfi-white);
+    text-align: center;
+    padding: 0.5rem;
+    font-weight: 600;
+    z-index: 999;
+    display: none;
+}
+
+.cfi-offline-banner.visible {
+    display: block;
+}
+
+/* Admin Panel Section */
+.cfi-admin-section {
+    background: var(--cfi-glass-bg);
+    border-radius: var(--cfi-radius);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.cfi-admin-section h3 {
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--cfi-border);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .cfi-nav {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--cfi-white);
+        box-shadow: 0 4px 20px var(--cfi-shadow);
+        padding: 1rem;
+    }
+    
+    .cfi-nav.open {
+        display: block;
+    }
+    
+    .cfi-nav ul {
+        flex-direction: column;
+    }
+    
+    .cfi-nav a {
+        padding: 0.75rem 1rem;
+    }
+    
+    .cfi-hamburger {
+        display: none !important;
+        visibility: hidden !important;
+    }
+    
+    .cfi-header-right {
+        gap: 1rem;
+    }
+    
+    .cfi-user-info {
+        display: none;
+    }
+}
+
+/* Mobile styles - NO bottom nav padding */
+@media (max-width: 768px) {
+    .cfi-main {
+        padding-bottom: 20px;
+    }
+    
+    .cfi-scroll-top {
+        bottom: 40px;
+    }
+    
+    .cfi-datetime {
+        display: none;
+    }
+    
+    .cfi-logo span {
+        display: none;
+    }
+    
+    h1 { font-size: 1.5rem; }
+    h2 { font-size: 1.25rem; }
+    h3 { font-size: 1.125rem; }
+    
+    .cfi-cards-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .cfi-page-title {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+/* Mobile nav REMOVED - no padding needed */
+.cfi-main {
+    padding-bottom: 20px !important;
+}
+
+/* Print Styles */
+@media print {
+    .cfi-header,
+    .cfi-footer,
+    .cfi-mobile-nav,
+    .cfi-scroll-top,
+    .cfi-btn {
+        display: none !important;
+    }
+    
+    .cfi-main {
+        padding: 0;
+    }
+    
+    .cfi-glass {
+        box-shadow: none;
+        border: 1px solid #000;
+    }
+}
