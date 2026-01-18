@@ -678,20 +678,22 @@ $page_load_id = time() . '_' . mt_rand(100000, 999999);
     var ajaxUrl = '<?php echo admin_url('admin-ajax.php'); ?>';
     var nonce = '<?php echo wp_create_nonce('cfi_nonce'); ?>';
     var summaryDate = '<?php echo esc_js($today); ?>';
-    var summaryContainer = null;
-    var refreshToken = 0;
+    var summaryState = {
+        container: null,
+        refreshToken: 0
+    };
     
     function setSummaryLoading(isLoading) {
-        if (!summaryContainer) {
-            summaryContainer = document.querySelector('.cfi-financial-container');
+        if (!summaryState.container) {
+            summaryState.container = document.querySelector('.cfi-financial-container');
         }
-        if (!summaryContainer) {
+        if (!summaryState.container) {
             return;
         }
         if (isLoading) {
-            summaryContainer.classList.add('cfi-summary-loading');
+            summaryState.container.classList.add('cfi-summary-loading');
         } else {
-            summaryContainer.classList.remove('cfi-summary-loading');
+            summaryState.container.classList.remove('cfi-summary-loading');
         }
     }
     
@@ -743,8 +745,8 @@ $page_load_id = time() . '_' . mt_rand(100000, 999999);
     
     function refreshSummary(options) {
         options = options || {};
-        refreshToken += 1;
-        var requestId = refreshToken;
+        summaryState.refreshToken += 1;
+        var requestId = summaryState.refreshToken;
         var showLoading = options.showLoading;
         if (showLoading) {
             setSummaryLoading(true);
@@ -763,7 +765,8 @@ $page_load_id = time() . '_' . mt_rand(100000, 999999);
             return response.json();
         })
         .then(function(data) {
-            if (requestId !== refreshToken) {
+            if (requestId !== summaryState.refreshToken) {
+                // Ignore outdated response.
                 return;
             }
             if (data.success && data.data && data.data.summary) {
@@ -774,7 +777,7 @@ $page_load_id = time() . '_' . mt_rand(100000, 999999);
             return null;
         })
         .finally(function() {
-            if (showLoading && requestId === refreshToken) {
+            if (showLoading && requestId === summaryState.refreshToken) {
                 setSummaryLoading(false);
             }
         });
