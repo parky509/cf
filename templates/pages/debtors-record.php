@@ -834,14 +834,28 @@ function closePayModal(){document.getElementById('pay-modal').style.display='non
 var cfiDebtorAjaxUrl = '<?php echo admin_url('admin-ajax.php'); ?>';
 var cfiDebtorNonce = '<?php echo wp_create_nonce('cfi_nonce'); ?>';
 var cfiSelectedDebtorId = <?php echo $selected_debtor ? (int) $selected_debtor->id : 'null'; ?>;
+var cfiCurrencySymbol = '₦';
 
 function cfiFormatDebt(value) {
     var amount = parseFloat(value) || 0;
     if (amount.toLocaleString && typeof Intl !== 'undefined' && Intl.NumberFormat) {
         var locale = Intl.NumberFormat.supportedLocalesOf(['en-NG']).length ? 'en-NG' : 'en-US';
-        return '₦' + amount.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        return cfiCurrencySymbol + amount.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
-    return '₦' + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return cfiCurrencySymbol + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function cfiUpdateSelectedDebt(balanceValue) {
+    if (!window.cfiDebtorState) {
+        return;
+    }
+    window.cfiDebtorState.debt = balanceValue;
+    if (typeof debt !== 'undefined') {
+        debt = balanceValue;
+    }
+    if (typeof updatePayTotal === 'function') {
+        updatePayTotal();
+    }
 }
 
 function cfiApplyDebtorBalances(balances) {
@@ -869,14 +883,8 @@ function cfiApplyDebtorBalances(balances) {
         }
         var balanceValue = parseFloat(balances[debtorId]) || 0;
         el.textContent = cfiFormatDebt(balanceValue);
-        if (cfiSelectedDebtorId && Number(debtorId) === Number(cfiSelectedDebtorId) && window.cfiDebtorState) {
-            window.cfiDebtorState.debt = balanceValue;
-            if (typeof debt !== 'undefined') {
-                debt = balanceValue;
-            }
-            if (typeof updatePayTotal === 'function') {
-                updatePayTotal();
-            }
+        if (cfiSelectedDebtorId && Number(debtorId) === Number(cfiSelectedDebtorId)) {
+            cfiUpdateSelectedDebt(balanceValue);
         }
     });
 }
