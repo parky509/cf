@@ -35,8 +35,9 @@ $trans_table = $wpdb->prefix . 'cfi_debtor_transactions';
 
 if (!function_exists('cfi_get_latest_debtor_balance')) {
     function cfi_get_latest_debtor_balance($wpdb, $trans_table, $debtor_id, $fallback) {
+        $safe_trans_table = esc_sql($trans_table);
         $latest_balance = $wpdb->get_var($wpdb->prepare(
-            "SELECT balance_after FROM `{$trans_table}` WHERE debtor_id = %d ORDER BY id DESC LIMIT 1",
+            "SELECT balance_after FROM `{$safe_trans_table}` WHERE debtor_id = %d ORDER BY id DESC LIMIT 1",
             $debtor_id
         ));
         return $latest_balance !== null ? floatval($latest_balance) : $fallback;
