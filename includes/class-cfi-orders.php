@@ -11,9 +11,14 @@ if (!defined('ABSPATH')) {
 
 if (!function_exists('cfi_format_receipt_time')) {
     function cfi_format_receipt_time($date, $time) {
-        $format = strlen($time) > 5 ? 'Y-m-d H:i:s' : 'Y-m-d H:i';
-        $date_time = DateTime::createFromFormat($format, trim($date . ' ' . $time), wp_timezone());
-        return $date_time ? $date_time->format('g:i A') : $time;
+        $time_format = strlen($time) > 5 ? 'H:i:s' : 'H:i';
+        $date_format = strpos((string) $date, '/') !== false ? 'd/m/Y' : 'Y-m-d';
+        $date_time = DateTime::createFromFormat($date_format . ' ' . $time_format, trim($date . ' ' . $time), wp_timezone());
+        if ($date_time) {
+            return $date_time->format('g:i A');
+        }
+        $time_only = DateTime::createFromFormat($time_format, trim($time), wp_timezone());
+        return $time_only ? $time_only->format('g:i A') : $time;
     }
 }
 
