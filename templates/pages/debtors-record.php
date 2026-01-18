@@ -177,7 +177,7 @@ if (isset($_POST['cfi_debtor_order_submit']) && wp_verify_nonce($_POST['cfi_debt
                 set_transient($receipt_key, array(
                     'order_number' => $order_number,
                     'date' => current_time('d/m/Y'),
-                    'time' => current_time('H:i'),
+                    'time' => current_time('g:i A'),
                     'debtor_name' => $debtor->name,
                     'items' => $order_items,
                     'total' => $total_amount,
@@ -283,7 +283,7 @@ if (isset($_POST['cfi_clear_debt_submit']) && wp_verify_nonce($_POST['cfi_clear_
             set_transient($pay_key, array(
                 'receipt_number' => 'PAY-' . date('Ymd') . '-' . substr(uniqid(), -6),
                 'date' => current_time('d/m/Y'),
-                'time' => current_time('H:i'),
+                'time' => current_time('g:i A'),
                 'debtor_name' => $debtor->name,
                 'payment_amount' => $total_payment,
                 'transfer_amount' => $transfer_amount,

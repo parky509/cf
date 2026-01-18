@@ -71,6 +71,14 @@ $debtors = $wpdb->get_results("SELECT * FROM {$debtors_table} WHERE status = 'ac
 
 // Generate unique page ID to break caching
 $page_uid = substr(md5(microtime(true)), 0, 8);
+
+if (!function_exists('cfi_format_receipt_time')) {
+    function cfi_format_receipt_time($date, $time) {
+        $format = strlen($time) > 5 ? 'Y-m-d H:i:s' : 'Y-m-d H:i';
+        $date_time = DateTime::createFromFormat($format, trim($date . ' ' . $time), wp_timezone());
+        return $date_time ? $date_time->format('g:i A') : $time;
+    }
+}
 ?><!DOCTYPE html>
 <html lang="en">
 <head>
@@ -172,7 +180,7 @@ $icon = $type === 'order' ? 'cart-plus' : ($type === 'payment' ? 'money-check' :
 ?>
 <tr>
 <td data-label="Date"><?php echo esc_html($rec->transaction_date); ?></td>
-<td data-label="Time"><?php echo esc_html(substr($rec->transaction_time, 0, 5)); ?></td>
+<td data-label="Time"><?php echo esc_html(cfi_format_receipt_time($rec->transaction_date, $rec->transaction_time)); ?></td>
 <td data-label="Debtor"><?php echo esc_html($rec->debtor_name ?: 'Unknown'); ?></td>
 <td data-label="Type"><span class="badge <?php echo esc_attr($badge); ?>"><i class="fas fa-<?php echo esc_attr($icon); ?>"></i> <?php echo esc_html(ucfirst($type)); ?></span></td>
 <td data-label="Amount" style="font-weight:600;color:<?php echo $type === 'order' ? '#dc2626' : '#16a34a'; ?>"><?php echo $type === 'order' ? '+' : '-'; ?>₦<?php echo number_format((float)$rec->amount, 2); ?></td>
@@ -221,7 +229,7 @@ foreach ($history as $rec) {
             'balance_before' => $rec->balance_before,
             'balance_after' => $rec->balance_after,
             'transaction_date' => $rec->transaction_date,
-            'transaction_time' => substr($rec->transaction_time, 0, 5),
+            'transaction_time' => cfi_format_receipt_time($rec->transaction_date, $rec->transaction_time),
             'staff_name' => $rec->staff_name
         );
     }

@@ -140,7 +140,7 @@ if (isset($_POST['cfi_submit_order']) && wp_verify_nonce($_POST['cfi_order_nonce
                 $receipt_data = array(
                     'order_number' => $order_number,
                     'date' => current_time('d/m/Y'),
-                    'time' => current_time('H:i'),
+                    'time' => current_time('g:i A'),
                     'customer_name' => $customer_name,
                     'items' => $order_items,
                     'total_qty' => $total_qty,

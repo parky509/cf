@@ -383,10 +383,18 @@ class CFI_Ajax {
             $order_id
         ));
         
+        $order_time = $order->order_time;
+        if (!empty($order->order_date) && !empty($order->order_time)) {
+            $date_time = DateTime::createFromFormat('Y-m-d H:i:s', $order->order_date . ' ' . $order->order_time, wp_timezone());
+            if ($date_time) {
+                $order_time = $date_time->format('g:i A');
+            }
+        }
+
         wp_send_json_success(array(
             'order_number' => $order->order_number,
             'order_date' => $order->order_date,
-            'order_time' => $order->order_time,
+            'order_time' => $order_time,
             'customer_name' => $order->customer_name,
             'grand_total' => $order->grand_total,
             'items' => $items

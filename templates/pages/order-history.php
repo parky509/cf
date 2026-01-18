@@ -61,6 +61,14 @@ foreach ($orders as $order) {
     ));
     $order_items[$order->id] = $items;
 }
+
+if (!function_exists('cfi_format_receipt_time')) {
+    function cfi_format_receipt_time($date, $time) {
+        $format = strlen($time) > 5 ? 'Y-m-d H:i:s' : 'Y-m-d H:i';
+        $date_time = DateTime::createFromFormat($format, trim($date . ' ' . $time), wp_timezone());
+        return $date_time ? $date_time->format('g:i A') : $time;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html>
@@ -201,7 +209,7 @@ foreach ($orders as $order) {
                     <tr>
                         <td class="order-num"><?php echo esc_html($order->order_number); ?></td>
                         <td><?php echo esc_html($order->order_date); ?></td>
-                        <td><?php echo esc_html(substr($order->order_time, 0, 5)); ?></td>
+                        <td><?php echo esc_html(cfi_format_receipt_time($order->order_date, $order->order_time)); ?></td>
                         <td class="type-<?php echo esc_attr($order->order_type); ?>"><?php echo ucfirst(esc_html($order->order_type)); ?></td>
                         <td><?php echo esc_html($order->customer_name ?: '-'); ?></td>
                         <td><?php echo esc_html($order->total_quantity ?: '-'); ?></td>
@@ -263,7 +271,7 @@ var orderData = <?php echo json_encode(array_map(function($order) use ($order_it
         'id' => $order->id,
         'order_number' => $order->order_number,
         'order_date' => $order->order_date,
-        'order_time' => substr($order->order_time, 0, 5),
+        'order_time' => cfi_format_receipt_time($order->order_date, $order->order_time),
         'customer_name' => $order->customer_name,
         'total_quantity' => $order->total_quantity,
         'total_amount' => $order->total_amount,
