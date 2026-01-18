@@ -326,17 +326,12 @@ $wpdb->query(
     )
 );
 $debtors = $wpdb->get_results(
-    "SELECT SQL_NO_CACHE d.*, latest.balance_after AS current_debt
+    "SELECT SQL_NO_CACHE d.*, COALESCE(latest.balance_after, d.total_debt) AS total_debt
     FROM `{$debtors_table}` d
     LEFT JOIN {$latest_debt_table} latest ON latest.debtor_id = d.id
     WHERE d.status = 'active'
     ORDER BY d.name ASC"
 );
-foreach ($debtors as $debtor) {
-    if ($debtor->current_debt !== null) {
-        $debtor->total_debt = floatval($debtor->current_debt);
-    }
-}
 $products = CFI_Products::get_all();
 
 $selected_debtor_id = isset($_GET['debtor']) ? intval($_GET['debtor']) : 0;
@@ -344,16 +339,13 @@ $action = isset($_GET['action']) ? sanitize_text_field($_GET['action']) : '';
 $selected_debtor = null;
 if ($selected_debtor_id) {
     $selected_debtor = $wpdb->get_row($wpdb->prepare(
-        "SELECT SQL_NO_CACHE d.*, latest.balance_after AS current_debt
+        "SELECT SQL_NO_CACHE d.*, COALESCE(latest.balance_after, d.total_debt) AS total_debt
         FROM `{$debtors_table}` d
         LEFT JOIN {$latest_debt_table} latest ON latest.debtor_id = d.id
         WHERE d.id = %d
         LIMIT 1",
         $selected_debtor_id
     ));
-    if ($selected_debtor && $selected_debtor->current_debt !== null) {
-        $selected_debtor->total_debt = floatval($selected_debtor->current_debt);
-    }
 }
 
 // Generate unique page ID to break caching
