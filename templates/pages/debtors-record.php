@@ -855,6 +855,13 @@ async function printToBluetoothPrinter(text) {
 
 // Prevent form resubmission on back button - but do NOT auto-reload
 if(window.history.replaceState)window.history.replaceState(null,null,window.location.href);
+
+window.addEventListener('pageshow', function(event) {
+    var navEntry = performance.getEntriesByType('navigation')[0];
+    if (event.persisted || (navEntry && navEntry.type === 'back_forward')) {
+        window.location.reload();
+    }
+});
 </script>
 </body>
 </html>

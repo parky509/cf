@@ -195,6 +195,11 @@ $page_load_id = time() . '_' . mt_rand(100000, 999999);
     padding: 12px !important;
 }
 
+.cfi-financial-container.cfi-summary-loading .cfi-financial-value,
+.cfi-financial-container.cfi-summary-loading .cfi-cash-left-value {
+    visibility: hidden;
+}
+
 .cfi-financial-title {
     display: flex !important;
     justify-content: space-between !important;
@@ -673,6 +678,19 @@ $page_load_id = time() . '_' . mt_rand(100000, 999999);
     var ajaxUrl = '<?php echo admin_url('admin-ajax.php'); ?>';
     var nonce = '<?php echo wp_create_nonce('cfi_nonce'); ?>';
     var summaryDate = '<?php echo esc_js($today); ?>';
+    var summaryContainer = document.querySelector('.cfi-financial-container');
+    var refreshToken = 0;
+    
+    function setSummaryLoading(isLoading) {
+        if (!summaryContainer) {
+            return;
+        }
+        if (isLoading) {
+            summaryContainer.classList.add('cfi-summary-loading');
+        } else {
+            summaryContainer.classList.remove('cfi-summary-loading');
+        }
+    }
     
     function setSummaryValue(id, value, options) {
         var el = document.getElementById(id);
@@ -720,7 +738,12 @@ $page_load_id = time() . '_' . mt_rand(100000, 999999);
         calculateCashLeft();
     }
     
-    function refreshSummary() {
+    function refreshSummary(options) {
+        var requestId = ++refreshToken;
+        var showLoading = options && options.showLoading;
+        if (showLoading) {
+            setSummaryLoading(true);
+        }
         var formData = new FormData();
         formData.append('action', 'cfi_get_financial_summary');
         formData.append('nonce', nonce);
@@ -735,12 +758,20 @@ $page_load_id = time() . '_' . mt_rand(100000, 999999);
             return response.json();
         })
         .then(function(data) {
+            if (requestId !== refreshToken) {
+                return;
+            }
             if (data.success && data.data && data.data.summary) {
                 updateSummaryDisplay(data.data.summary);
             }
         })
         .catch(function() {
             return null;
+        })
+        .finally(function() {
+            if (showLoading && requestId === refreshToken) {
+                setSummaryLoading(false);
+            }
         });
     }
     
@@ -864,7 +895,7 @@ $page_load_id = time() . '_' . mt_rand(100000, 999999);
     
     // Initial calculation
     calculateCashLeft();
-    refreshSummary();
+    refreshSummary({ showLoading: true });
     
     document.addEventListener('visibilitychange', function() {
         if (!document.hidden) {
