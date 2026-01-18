@@ -678,11 +678,19 @@ $page_load_id = time() . '_' . mt_rand(100000, 999999);
     var ajaxUrl = '<?php echo admin_url('admin-ajax.php'); ?>';
     var nonce = '<?php echo wp_create_nonce('cfi_nonce'); ?>';
     var summaryDate = '<?php echo esc_js($today); ?>';
-    // Tracks container state and refreshToken sequencing to avoid stale responses.
+    // Tracks container state and refreshToken sequencing so older AJAX responses
+    // don't overwrite newer summary data.
     var summaryState = {
         container: null,
-        refreshToken: 0
+        refreshToken: null
     };
+
+    function nextRefreshToken() {
+        if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+            return window.crypto.randomUUID();
+        }
+        return Date.now().toString(36) + Math.random().toString(36).slice(2);
+    }
     
     function setSummaryLoading(isLoading) {
         if (!summaryState.container) {
@@ -746,8 +754,8 @@ $page_load_id = time() . '_' . mt_rand(100000, 999999);
     
     function refreshSummary(options) {
         options = options || {};
-        summaryState.refreshToken += 1;
-        var requestId = summaryState.refreshToken;
+        var requestId = nextRefreshToken();
+        summaryState.refreshToken = requestId;
         var showLoading = options.showLoading;
         if (showLoading) {
             setSummaryLoading(true);
