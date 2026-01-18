@@ -44,6 +44,7 @@ class CFI_Pages {
             'cfi-reconciliation',
             'cfi-admin-panel',
             'cfi-profile',
+            'cfi-analytics',
         );
     }
     
@@ -232,6 +233,15 @@ class CFI_Pages {
                 'icon' => 'fa-calculator',
                 'show_in_menu' => true,
                 'description' => __('Daily financial overview', 'chinemerem-foods'),
+            ),
+            array(
+                'slug' => 'cfi-analytics',
+                'title' => __('Analytics Overview', 'chinemerem-foods'),
+                'template' => 'analytics',
+                'icon' => 'fa-chart-line',
+                'show_in_menu' => true,
+                'admin_only' => true,
+                'description' => __('Performance analytics for key forms', 'chinemerem-foods'),
             ),
             array(
                 'slug' => 'cfi-financial-history',

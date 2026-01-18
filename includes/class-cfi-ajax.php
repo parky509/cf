@@ -100,6 +100,7 @@ class CFI_Ajax {
             'get_financial_summary',
             'update_financial',
             'get_financial_history',
+            'get_analytics_summary',
             
             // Transfer History
             'get_transfer_history',
@@ -989,6 +990,18 @@ class CFI_Ajax {
         $history = CFI_Financial::get_history($start_date, $end_date);
         
         wp_send_json_success(array('history' => $history));
+    }
+
+    /**
+     * Get analytics summary (admin only)
+     */
+    public function handle_get_analytics_summary() {
+        $this->verify_request(true);
+
+        $period = isset($_POST['period']) ? sanitize_text_field(wp_unslash($_POST['period'])) : 'daily';
+        $summary = CFI_Financial::get_analytics_summary($period);
+
+        wp_send_json_success(array('summary' => $summary));
     }
     
     /**

@@ -400,6 +400,184 @@ class CFI_Financial {
         
         return $wpdb->get_results($params ? $wpdb->prepare($query, $params) : $query);
     }
+
+    /**
+     * Get analytics date range for a period
+     */
+    public static function get_analytics_range($period = 'daily') {
+        $period = in_array($period, array('daily', 'weekly', 'monthly'), true) ? $period : 'daily';
+        $timezone = wp_timezone();
+        $timestamp = current_time('timestamp');
+        $end_date = wp_date('Y-m-d', $timestamp, $timezone);
+
+        switch ($period) {
+            case 'weekly':
+                $start_of_week = (int) get_option('start_of_week', 1);
+                $day_of_week = (int) wp_date('w', $timestamp, $timezone);
+                $days_since_start = ($day_of_week - $start_of_week + 7) % 7;
+                $start_timestamp = strtotime("-{$days_since_start} days", $timestamp);
+                $start_date = wp_date('Y-m-d', $start_timestamp, $timezone);
+                $label = sprintf(__('Week of %s', 'chinemerem-foods'), wp_date('M j, Y', $start_timestamp, $timezone));
+                break;
+            case 'monthly':
+                $start_date = wp_date('Y-m-01', $timestamp, $timezone);
+                $label = wp_date('F Y', $timestamp, $timezone);
+                break;
+            default:
+                $start_date = $end_date;
+                $label = wp_date('M j, Y', $timestamp, $timezone);
+                break;
+        }
+
+        $start_display = $start_date;
+        $end_display = $end_date;
+        $start_object = DateTimeImmutable::createFromFormat('Y-m-d', $start_date, $timezone);
+        if ($start_object instanceof DateTimeImmutable) {
+            $start_display = wp_date('M j, Y', $start_object->getTimestamp(), $timezone);
+        }
+        $end_object = DateTimeImmutable::createFromFormat('Y-m-d', $end_date, $timezone);
+        if ($end_object instanceof DateTimeImmutable) {
+            $end_display = wp_date('M j, Y', $end_object->getTimestamp(), $timezone);
+        }
+
+        return array(
+            'period' => $period,
+            'start_date' => $start_date,
+            'end_date' => $end_date,
+            'label' => $label,
+            'start_display' => $start_display,
+            'end_display' => $end_display,
+        );
+    }
+
+    /**
+     * Get analytics summary for a period
+     */
+    public static function get_analytics_summary($period = 'daily') {
+        global $wpdb;
+
+        $range = self::get_analytics_range($period);
+        $start_date = $range['start_date'];
+        $end_date = $range['end_date'];
+
+        $orders_table = CFI_Database::get_table('orders');
+        $transactions_table = CFI_Database::get_table('debtor_transactions');
+        $expenses_table = CFI_Database::get_table('expenses');
+        $transfers_table = CFI_Database::get_table('transfer_history');
+        $cashout_table = CFI_Database::get_table('cashout');
+
+        $orders = $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT
+                    COUNT(*) as total_orders,
+                    COALESCE(SUM(grand_total), 0) as total_sales,
+                    COALESCE(SUM(CASE WHEN order_type = 'cash' THEN 1 ELSE 0 END), 0) as cash_orders,
+                    COALESCE(SUM(CASE WHEN order_type = 'credit' THEN 1 ELSE 0 END), 0) as credit_orders,
+                    COALESCE(SUM(CASE WHEN order_type = 'cash' THEN grand_total ELSE 0 END), 0) as cash_sales,
+                    COALESCE(SUM(CASE WHEN order_type = 'credit' THEN grand_total ELSE 0 END), 0) as credit_sales,
+                    COALESCE(SUM(CASE WHEN order_type = 'cash' THEN transfer_amount ELSE 0 END), 0) as transfer_sales,
+                    COALESCE(SUM(CASE WHEN order_type = 'cash' THEN cash_amount ELSE 0 END), 0) as cash_received
+                FROM $orders_table
+                WHERE order_date BETWEEN %s AND %s AND status = 'completed'",
+                $start_date,
+                $end_date
+            )
+        );
+
+        $debtors = $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT
+                    COALESCE(SUM(CASE WHEN transaction_type = 'order' THEN amount ELSE 0 END), 0) as orders_total,
+                    COALESCE(SUM(CASE WHEN transaction_type = 'order' THEN 1 ELSE 0 END), 0) as orders_count,
+                    COALESCE(SUM(CASE WHEN transaction_type = 'payment' THEN amount ELSE 0 END), 0) as payments_total,
+                    COALESCE(SUM(CASE WHEN transaction_type = 'payment' THEN transfer_amount ELSE 0 END), 0) as payments_transfer,
+                    COALESCE(SUM(CASE WHEN transaction_type = 'payment' THEN cash_amount ELSE 0 END), 0) as payments_cash,
+                    COALESCE(SUM(CASE WHEN transaction_type = 'payment' THEN home_calculation_amount ELSE 0 END), 0) as payments_home,
+                    COALESCE(SUM(CASE WHEN transaction_type = 'payment' THEN 1 ELSE 0 END), 0) as payments_count
+                FROM $transactions_table
+                WHERE transaction_date BETWEEN %s AND %s",
+                $start_date,
+                $end_date
+            )
+        );
+
+        $expenses = $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT
+                    COUNT(*) as total_count,
+                    COALESCE(SUM(amount), 0) as total_amount
+                FROM $expenses_table
+                WHERE expense_date BETWEEN %s AND %s",
+                $start_date,
+                $end_date
+            )
+        );
+
+        $transfers = $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT
+                    COUNT(*) as total_count,
+                    COALESCE(SUM(amount), 0) as total_amount,
+                    COALESCE(SUM(CASE WHEN source = 'order' THEN amount ELSE 0 END), 0) as orders_amount,
+                    COALESCE(SUM(CASE WHEN source = 'debtor' THEN amount ELSE 0 END), 0) as debtors_amount,
+                    COALESCE(SUM(CASE WHEN source = 'cashout' THEN amount ELSE 0 END), 0) as cashout_amount
+                FROM $transfers_table
+                WHERE transfer_date BETWEEN %s AND %s",
+                $start_date,
+                $end_date
+            )
+        );
+
+        $cashout = $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT
+                    COUNT(*) as total_count,
+                    COALESCE(SUM(amount), 0) as total_amount
+                FROM $cashout_table
+                WHERE cashout_date BETWEEN %s AND %s",
+                $start_date,
+                $end_date
+            )
+        );
+
+        return array(
+            'range' => $range,
+            'orders' => array(
+                'total_orders' => intval($orders->total_orders ?? 0),
+                'cash_orders' => intval($orders->cash_orders ?? 0),
+                'credit_orders' => intval($orders->credit_orders ?? 0),
+                'total_sales' => floatval($orders->total_sales ?? 0),
+                'cash_sales' => floatval($orders->cash_sales ?? 0),
+                'credit_sales' => floatval($orders->credit_sales ?? 0),
+                'cash_received' => floatval($orders->cash_received ?? 0),
+                'transfer_sales' => floatval($orders->transfer_sales ?? 0),
+            ),
+            'debtors' => array(
+                'orders_total' => floatval($debtors->orders_total ?? 0),
+                'orders_count' => intval($debtors->orders_count ?? 0),
+                'payments_total' => floatval($debtors->payments_total ?? 0),
+                'payments_transfer' => floatval($debtors->payments_transfer ?? 0),
+                'payments_cash' => floatval($debtors->payments_cash ?? 0),
+                'payments_home' => floatval($debtors->payments_home ?? 0),
+                'payments_count' => intval($debtors->payments_count ?? 0),
+            ),
+            'expenses' => array(
+                'total_count' => intval($expenses->total_count ?? 0),
+                'total_amount' => floatval($expenses->total_amount ?? 0),
+            ),
+            'transfers' => array(
+                'total_count' => intval($transfers->total_count ?? 0),
+                'total_amount' => floatval($transfers->total_amount ?? 0),
+                'orders_amount' => floatval($transfers->orders_amount ?? 0),
+                'debtors_amount' => floatval($transfers->debtors_amount ?? 0),
+                'cashout_amount' => floatval($transfers->cashout_amount ?? 0),
+            ),
+            'cashout' => array(
+                'total_count' => intval($cashout->total_count ?? 0),
+                'total_amount' => floatval($cashout->total_amount ?? 0),
+            ),
+        );
+    }
     
     /**
      * End of day processing

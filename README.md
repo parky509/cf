@@ -29,6 +29,7 @@ A comprehensive WordPress plugin for managing inventory, orders, and financial r
 - **Financial Summary**: Daily cash flow overview
 - **Cash Out Record**: Track bank transfers
 - **Transfer History**: All card/transfer payments
+- **Analytics Overview**: Admin-only daily, weekly, and monthly performance summary
 - **Expenses Record**: Daily expense tracking
 - **Debtors Record**: Credit accounts management
 
