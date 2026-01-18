@@ -15,6 +15,14 @@ if (!CFI_Auth::is_cfi_admin()) {
 $period = isset($_GET['period']) ? sanitize_text_field(wp_unslash($_GET['period'])) : 'daily';
 $summary = CFI_Financial::get_analytics_summary($period);
 $range = $summary['range'] ?? array();
+$range_display = '';
+if (!empty($range['start_display']) && !empty($range['end_display'])) {
+    $range_display = $range['start_display'] . ' - ' . $range['end_display'];
+} elseif (!empty($range['start_display'])) {
+    $range_display = $range['start_display'];
+} elseif (!empty($range['end_display'])) {
+    $range_display = $range['end_display'];
+}
 
 $format_currency = function($value) {
     return '₦' . number_format((float) $value, 2);
@@ -136,7 +144,7 @@ $format_number = function($value) {
             <div class="cfi-analytics-range">
                 <strong id="cfi-analytics-range-label"><?php echo esc_html($range['label'] ?? ''); ?></strong>
                 <span id="cfi-analytics-range-dates">
-                    <?php echo esc_html(($range['start_display'] ?? '') . ' - ' . ($range['end_display'] ?? '')); ?>
+                    <?php echo esc_html($range_display); ?>
                 </span>
                 <span><?php esc_html_e('Completed records only', 'chinemerem-foods'); ?></span>
             </div>
