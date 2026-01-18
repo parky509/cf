@@ -282,6 +282,13 @@ $format_number = function($value) {
 <script>
     jQuery(document).ready(function($) {
         const summaryData = <?php echo wp_json_encode($summary); ?>;
+        const currencyLocale = {
+            style: 'currency',
+            currency: 'NGN',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        };
+        const numberLocale = { maximumFractionDigits: 0 };
 
         function getValue(source, path) {
             return path.split('.').reduce(function(accumulator, key) {
@@ -298,17 +305,12 @@ $format_number = function($value) {
                 if (typeof CFI !== 'undefined' && CFI.utils && CFI.utils.formatCurrency) {
                     return CFI.utils.formatCurrency(numeric);
                 }
-                return numeric.toLocaleString('en-NG', {
-                    style: 'currency',
-                    currency: 'NGN',
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                });
+                return numeric.toLocaleString('en-NG', currencyLocale);
             }
             if (typeof CFI !== 'undefined' && CFI.utils && CFI.utils.formatNumber) {
                 return CFI.utils.formatNumber(numeric);
             }
-            return numeric.toLocaleString('en-NG', { maximumFractionDigits: 0 });
+            return numeric.toLocaleString('en-NG', numberLocale);
         }
 
         function updateSummary(summary) {
@@ -357,8 +359,10 @@ $format_number = function($value) {
         $('#cfi-analytics-period').on('change', function() {
             const period = $(this).val();
             const url = new URL(window.location.href);
-            url.searchParams.set('period', period);
-            window.history.replaceState({}, '', url.toString());
+            if (url.searchParams.get('period') !== period) {
+                url.searchParams.set('period', period);
+                window.history.replaceState({}, '', url.toString());
+            }
             fetchSummary(period);
         });
 

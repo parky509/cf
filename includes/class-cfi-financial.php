@@ -10,6 +10,23 @@ if (!defined('ABSPATH')) {
 }
 
 class CFI_Financial {
+    /**
+     * Format analytics display date in site timezone
+     */
+    private static function format_analytics_display_date($date, DateTimeZone $timezone) {
+        $date_object = DateTimeImmutable::createFromFormat('Y-m-d', $date, $timezone);
+        if ($date_object instanceof DateTimeImmutable) {
+            return wp_date('M j, Y', $date_object->getTimestamp(), $timezone);
+        }
+        return $date;
+    }
+
+    /**
+     * Ensure analytics query results return an object
+     */
+    private static function ensure_result_object($result) {
+        return $result ?: (object) array();
+    }
     
     /**
      * Initialize financial record for a date
@@ -429,16 +446,8 @@ class CFI_Financial {
                 break;
         }
 
-        $format_display_date = static function($date) use ($timezone) {
-            $date_object = DateTimeImmutable::createFromFormat('Y-m-d', $date, $timezone);
-            if ($date_object instanceof DateTimeImmutable) {
-                return wp_date('M j, Y', $date_object->getTimestamp(), $timezone);
-            }
-            return $date;
-        };
-
-        $start_display = $format_display_date($start_date);
-        $end_display = $format_display_date($end_date);
+        $start_display = self::format_analytics_display_date($start_date, $timezone);
+        $end_display = self::format_analytics_display_date($end_date, $timezone);
 
         return array(
             'period' => $period,
@@ -540,11 +549,11 @@ class CFI_Financial {
             )
         );
 
-        $orders = $orders ?: (object) array();
-        $debtors = $debtors ?: (object) array();
-        $expenses = $expenses ?: (object) array();
-        $transfers = $transfers ?: (object) array();
-        $cashout = $cashout ?: (object) array();
+        $orders = self::ensure_result_object($orders);
+        $debtors = self::ensure_result_object($debtors);
+        $expenses = self::ensure_result_object($expenses);
+        $transfers = self::ensure_result_object($transfers);
+        $cashout = self::ensure_result_object($cashout);
 
         return array(
             'range' => $range,
