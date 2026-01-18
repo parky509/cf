@@ -125,8 +125,11 @@ if (isset($_POST['cfi_debtor_order_submit']) && wp_verify_nonce($_POST['cfi_debt
                     CFI_Stock::update_credit_supply($item['product_id'], $item['quantity'], current_time('Y-m-d'));
                 }
                 
-                // Update debtor balance using direct UPDATE query
-                $balance_before = floatval($debtor->total_debt);
+                $latest_balance = $wpdb->get_var($wpdb->prepare(
+                    "SELECT balance_after FROM `{$trans_table}` WHERE debtor_id = %d ORDER BY id DESC LIMIT 1",
+                    $debtor_id
+                ));
+                $balance_before = $latest_balance !== null ? floatval($latest_balance) : floatval($debtor->total_debt);
                 $new_balance = $balance_before + $total_amount;
                 
                 // CRITICAL: Direct SQL update without any caching
@@ -203,8 +206,12 @@ if (isset($_POST['cfi_clear_debt_submit']) && wp_verify_nonce($_POST['cfi_clear_
             $debtor_id
         ));
         
-        if ($debtor && $total_payment <= $debtor->total_debt) {
-            $balance_before = floatval($debtor->total_debt);
+        $latest_balance = $debtor ? $wpdb->get_var($wpdb->prepare(
+            "SELECT balance_after FROM `{$trans_table}` WHERE debtor_id = %d ORDER BY id DESC LIMIT 1",
+            $debtor_id
+        )) : null;
+        $balance_before = $latest_balance !== null ? floatval($latest_balance) : ($debtor ? floatval($debtor->total_debt) : 0);
+        if ($debtor && $total_payment <= $balance_before) {
             $new_balance = $balance_before - $total_payment;
             
             // CRITICAL: Direct SQL update without any caching
@@ -321,7 +328,7 @@ $debtors = $wpdb->get_results(
     ORDER BY d.name ASC"
 );
 foreach ($debtors as $debtor) {
-    if (!is_null($debtor->current_balance) && $debtor->current_balance !== '') {
+    if (!is_null($debtor->current_balance)) {
         $debtor->display_debt = floatval($debtor->current_balance);
     } else {
         $debtor->display_debt = floatval($debtor->total_debt);
