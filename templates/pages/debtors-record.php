@@ -387,6 +387,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;m
 .btn-white{background:#fff;color:#001943}
 .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}
 .card{background:#fff;border-radius:12px;padding:1.5rem;box-shadow:0 4px 20px rgba(0,25,67,0.1);border:2px solid rgba(0,25,67,0.1)}
+.cfi-debtor-loading .card-balance,
+.cfi-debtor-loading .cfi-debtor-balance{opacity:0}
 .card-name{font-size:1.2rem;color:#001943;margin:0 0 0.5rem}
 .card-phone{color:#64748b;font-size:0.85rem;margin:0 0 1rem}
 .card-balance{font-size:1.5rem;font-weight:700;color:#dc2626;margin-bottom:1rem}
@@ -451,7 +453,7 @@ table input{width:50px}
 }
 </style>
 </head>
-<body>
+<body class="cfi-debtor-loading">
 <main class="container">
 <div class="header">
 <?php if ($selected_debtor && ($action === 'order' || $action === 'pay')) : ?>
@@ -880,6 +882,18 @@ var cfiLocale = (typeof Intl !== 'undefined' && Intl.NumberFormat && Intl.Number
     : 'en-US';
 var cfiDebtorCardBalances = null;
 var cfiDebtorBalanceFields = null;
+var cfiDebtorLoading = true;
+
+function cfiSetDebtorLoading(isLoading) {
+    if (!document.body) {
+        return;
+    }
+    if (isLoading) {
+        document.body.classList.add('cfi-debtor-loading');
+    } else {
+        document.body.classList.remove('cfi-debtor-loading');
+    }
+}
 
 function cfiFormatDebt(value) {
     var amount = parseFloat(value) || 0;
@@ -940,6 +954,9 @@ function cfiApplyDebtorBalances(balances) {
 }
 
 function cfiRefreshDebtorBalances() {
+    if (cfiDebtorLoading) {
+        cfiSetDebtorLoading(true);
+    }
     var formData = new FormData();
     formData.append('action', 'cfi_get_debtor_balances');
     formData.append('nonce', cfiDebtorNonce);
@@ -962,9 +979,14 @@ function cfiRefreshDebtorBalances() {
             console.warn('CFI debtor balance refresh failed', error);
         }
         return null;
+    })
+    .finally(function() {
+        cfiDebtorLoading = false;
+        cfiSetDebtorLoading(false);
     });
 }
 
+cfiSetDebtorLoading(true);
 cfiRefreshDebtorBalances();
 document.addEventListener('visibilitychange', function() {
     if (!document.hidden) {
@@ -1045,6 +1067,8 @@ window.addEventListener('pageshow', function(event) {
     // Some browsers report back_forward when restoring from bfcache.
     var isBackForward = navEntry && navEntry.type === 'back_forward';
     if (event.persisted || isBackForward) {
+        cfiDebtorLoading = true;
+        cfiSetDebtorLoading(true);
         cfiRefreshDebtorBalances();
     }
 });
