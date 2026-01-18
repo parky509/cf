@@ -302,34 +302,39 @@ if (isset($_GET['pay_done']) && isset($_GET['pk'])) {
 
 // Get fresh data - use SQL_NO_CACHE and bypass WordPress object cache
 $wpdb->flush();  // Clear any cached query results
+$debt_tolerance = 0.01;
+$latest_debt_table = "(
+    SELECT dt.debtor_id, dt.balance_after
+    FROM `{$trans_table}` dt
+    INNER JOIN (
+        SELECT debtor_id, MAX(id) AS max_id
+        FROM `{$trans_table}`
+        GROUP BY debtor_id
+    ) latest ON latest.max_id = dt.id
+)";
+$wpdb->query(
+    $wpdb->prepare(
+        "UPDATE `{$debtors_table}` d
+        INNER JOIN {$latest_debt_table} latest ON latest.debtor_id = d.id
+        SET d.total_debt = latest.balance_after,
+            d.updated_at = %s
+        WHERE d.status = 'active'
+            AND latest.balance_after IS NOT NULL
+            AND ABS(latest.balance_after - d.total_debt) > %f",
+        current_time('mysql'),
+        $debt_tolerance
+    )
+);
 $debtors = $wpdb->get_results(
-    "SELECT SQL_NO_CACHE d.*, (
-        SELECT dt.balance_after
-        FROM `{$trans_table}` dt
-        WHERE dt.debtor_id = d.id
-        ORDER BY dt.id DESC
-        LIMIT 1
-    ) AS current_debt
+    "SELECT SQL_NO_CACHE d.*, latest.balance_after AS current_debt
     FROM `{$debtors_table}` d
+    LEFT JOIN {$latest_debt_table} latest ON latest.debtor_id = d.id
     WHERE d.status = 'active'
     ORDER BY d.name ASC"
 );
 foreach ($debtors as $debtor) {
     if ($debtor->current_debt !== null) {
-        $current_debt = floatval($debtor->current_debt);
-        if (abs($current_debt - floatval($debtor->total_debt)) > 0.01) {
-            $wpdb->update(
-                $debtors_table,
-                array(
-                    'total_debt' => $current_debt,
-                    'updated_at' => current_time('mysql')
-                ),
-                array('id' => $debtor->id),
-                array('%f', '%s'),
-                array('%d')
-            );
-        }
-        $debtor->total_debt = $current_debt;
+        $debtor->total_debt = floatval($debtor->current_debt);
     }
 }
 $products = CFI_Products::get_all();
@@ -339,14 +344,9 @@ $action = isset($_GET['action']) ? sanitize_text_field($_GET['action']) : '';
 $selected_debtor = null;
 if ($selected_debtor_id) {
     $selected_debtor = $wpdb->get_row($wpdb->prepare(
-        "SELECT SQL_NO_CACHE d.*, (
-            SELECT dt.balance_after
-            FROM `{$trans_table}` dt
-            WHERE dt.debtor_id = d.id
-            ORDER BY dt.id DESC
-            LIMIT 1
-        ) AS current_debt
+        "SELECT SQL_NO_CACHE d.*, latest.balance_after AS current_debt
         FROM `{$debtors_table}` d
+        LEFT JOIN {$latest_debt_table} latest ON latest.debtor_id = d.id
         WHERE d.id = %d
         LIMIT 1",
         $selected_debtor_id
