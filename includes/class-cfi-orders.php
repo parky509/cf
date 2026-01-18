@@ -10,14 +10,25 @@ if (!defined('ABSPATH')) {
 }
 
 if (!function_exists('cfi_format_receipt_time')) {
+    /**
+     * Format receipt time in 12-hour format using the site timezone.
+     *
+     * @param string $date Date string in Y-m-d or d/m/Y format.
+     * @param string $time Time string in H:i or H:i:s format.
+     * @return string Formatted time in g:i A or original time if parsing fails.
+     */
     function cfi_format_receipt_time($date, $time) {
         $time_format = strlen($time) > 5 ? 'H:i:s' : 'H:i';
         $date_format = strpos((string) $date, '/') !== false ? 'd/m/Y' : 'Y-m-d';
-        $date_time = DateTime::createFromFormat($date_format . ' ' . $time_format, trim($date . ' ' . $time), wp_timezone());
+        $timezone = wp_timezone();
+        if (!$timezone instanceof DateTimeZone) {
+            $timezone = new DateTimeZone('UTC');
+        }
+        $date_time = DateTime::createFromFormat($date_format . ' ' . $time_format, trim($date . ' ' . $time), $timezone);
         if ($date_time) {
             return $date_time->format('g:i A');
         }
-        $time_only = DateTime::createFromFormat($time_format, trim($time), wp_timezone());
+        $time_only = DateTime::createFromFormat($time_format, trim($time), $timezone);
         return $time_only ? $time_only->format('g:i A') : $time;
     }
 }
