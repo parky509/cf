@@ -321,8 +321,10 @@ $debtors = $wpdb->get_results(
     ORDER BY d.name ASC"
 );
 foreach ($debtors as $debtor) {
-    if ($debtor->current_balance !== null) {
-        $debtor->total_debt = floatval($debtor->current_balance);
+    if (!is_null($debtor->current_balance) && $debtor->current_balance !== '') {
+        $debtor->display_debt = floatval($debtor->current_balance);
+    } else {
+        $debtor->display_debt = floatval($debtor->total_debt);
     }
 }
 $products = CFI_Products::get_all();
@@ -434,7 +436,7 @@ table input{width:50px}
 <?php if ($selected_debtor && $action === 'order') : ?>
 <div class="glass">
 <h3 style="color:#001943;margin-top:0"><i class="fas fa-shopping-cart"></i> Order Items</h3>
-<p><strong>Current Debt:</strong> <span style="color:#dc2626">₦<?php echo number_format($selected_debtor->total_debt, 2); ?></span></p>
+<p><strong>Current Debt:</strong> <span style="color:#dc2626">₦<?php echo number_format($selected_debtor->display_debt, 2); ?></span></p>
 <form method="POST" id="order-form">
 <?php wp_nonce_field('cfi_debtor_order', 'cfi_debtor_order_nonce'); ?>
 <input type="hidden" name="debtor_id" value="<?php echo esc_attr($selected_debtor->id); ?>">
@@ -472,8 +474,8 @@ document.querySelectorAll('input[type="number"]').forEach(function(i){i.addEvent
 <div class="glass">
 <h3 style="color:#001943;margin-top:0"><i class="fas fa-money-check"></i> Record Payment</h3>
 <p><strong>Debtor:</strong> <?php echo esc_html($selected_debtor->name); ?></p>
-<p><strong>Outstanding Balance:</strong> <span style="color:#dc2626;font-size:1.5rem;font-weight:700">₦<?php echo number_format($selected_debtor->total_debt, 2); ?></span></p>
-<?php if ($selected_debtor->total_debt <= 0) : ?>
+<p><strong>Outstanding Balance:</strong> <span style="color:#dc2626;font-size:1.5rem;font-weight:700">₦<?php echo number_format($selected_debtor->display_debt, 2); ?></span></p>
+<?php if ($selected_debtor->display_debt <= 0) : ?>
 <div style="background:#dcfce7;color:#166534;padding:1rem;border-radius:8px;margin:1rem 0"><i class="fas fa-check-circle"></i> No outstanding debt!</div>
 <a href="<?php echo esc_url(remove_query_arg(array('debtor','action'))); ?>" class="btn btn-primary">Back to Debtors</a>
 <?php else : ?>
@@ -511,7 +513,7 @@ document.querySelectorAll('input[type="number"]').forEach(function(i){i.addEvent
 </div>
 </form>
 <script>
-var debt=<?php echo floatval($selected_debtor->total_debt); ?>;
+var debt=<?php echo floatval($selected_debtor->display_debt); ?>;
 function togglePay(el){
     el.classList.toggle('selected');
     var m=el.dataset.method;
@@ -548,7 +550,7 @@ if(Math.abs(diff)>0.01&&tot>0){w.style.display='block';if(diff>0){w.textContent=
 <div class="card">
 <h3 class="card-name"><?php echo esc_html($debtor->name); ?></h3>
 <?php if ($debtor->phone) : ?><p class="card-phone"><i class="fas fa-phone"></i> <?php echo esc_html($debtor->phone); ?></p><?php endif; ?>
-<div class="card-balance <?php echo $debtor->total_debt <= 0 ? 'zero' : ''; ?>">₦<?php echo number_format($debtor->total_debt, 2); ?></div>
+<div class="card-balance <?php echo $debtor->display_debt <= 0 ? 'zero' : ''; ?>">₦<?php echo number_format($debtor->display_debt, 2); ?></div>
 <div class="card-actions">
 <a href="<?php echo esc_url(add_query_arg(array('debtor'=>$debtor->id,'action'=>'order'))); ?>" class="btn btn-primary"><i class="fas fa-cart-plus"></i> Order</a>
 <a href="<?php echo esc_url(add_query_arg(array('debtor'=>$debtor->id,'action'=>'pay'))); ?>" class="btn btn-success"><i class="fas fa-money-check"></i> Clear Debt</a>
