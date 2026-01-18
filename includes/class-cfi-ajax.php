@@ -508,6 +508,13 @@ class CFI_Ajax {
         global $wpdb;
         $debtors_table = $wpdb->prefix . 'cfi_debtors';
         $trans_table = $wpdb->prefix . 'cfi_debtor_transactions';
+        $allowed_tables = array(
+            $wpdb->prefix . 'cfi_debtors',
+            $wpdb->prefix . 'cfi_debtor_transactions'
+        );
+        if (!in_array($debtors_table, $allowed_tables, true) || !in_array($trans_table, $allowed_tables, true)) {
+            wp_send_json_error(array('message' => __('Invalid table name', 'chinemerem-foods')));
+        }
         $latest_debt_table = "(
             SELECT dt.debtor_id, dt.balance_after
             FROM `{$trans_table}` dt

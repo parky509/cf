@@ -835,12 +835,16 @@ var cfiDebtorAjaxUrl = '<?php echo admin_url('admin-ajax.php'); ?>';
 var cfiDebtorNonce = '<?php echo wp_create_nonce('cfi_nonce'); ?>';
 var cfiSelectedDebtorId = <?php echo $selected_debtor ? (int) $selected_debtor->id : 'null'; ?>;
 var cfiCurrencySymbol = '₦';
+var cfiLocale = (typeof Intl !== 'undefined' && Intl.NumberFormat && Intl.NumberFormat.supportedLocalesOf(['en-NG']).length)
+    ? 'en-NG'
+    : 'en-US';
+var cfiDebtorCardBalances = null;
+var cfiDebtorBalanceFields = null;
 
 function cfiFormatDebt(value) {
     var amount = parseFloat(value) || 0;
     if (amount.toLocaleString && typeof Intl !== 'undefined' && Intl.NumberFormat) {
-        var locale = Intl.NumberFormat.supportedLocalesOf(['en-NG']).length ? 'en-NG' : 'en-US';
-        return cfiCurrencySymbol + amount.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        return cfiCurrencySymbol + amount.toLocaleString(cfiLocale, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
     return cfiCurrencySymbol + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
@@ -859,16 +863,19 @@ function cfiUpdateSelectedDebt(balanceValue) {
 }
 
 function cfiApplyDebtorBalances(balances) {
-    document.querySelectorAll('.card[data-debtor-id]').forEach(function(card) {
+    if (!cfiDebtorCardBalances) {
+        cfiDebtorCardBalances = document.querySelectorAll('.card[data-debtor-id] .card-balance');
+    }
+    cfiDebtorCardBalances.forEach(function(balanceEl) {
+        var card = balanceEl.closest('.card[data-debtor-id]');
+        if (!card) {
+            return;
+        }
         var debtorId = card.getAttribute('data-debtor-id');
         if (!debtorId || balances[debtorId] === undefined) {
             return;
         }
         var balanceValue = parseFloat(balances[debtorId]) || 0;
-        var balanceEl = card.querySelector('.card-balance');
-        if (!balanceEl) {
-            return;
-        }
         balanceEl.textContent = cfiFormatDebt(balanceValue);
         if (balanceValue <= 0) {
             balanceEl.classList.add('zero');
@@ -876,7 +883,10 @@ function cfiApplyDebtorBalances(balances) {
             balanceEl.classList.remove('zero');
         }
     });
-    document.querySelectorAll('.cfi-debtor-balance[data-debtor-id]').forEach(function(el) {
+    if (!cfiDebtorBalanceFields) {
+        cfiDebtorBalanceFields = document.querySelectorAll('.cfi-debtor-balance[data-debtor-id]');
+    }
+    cfiDebtorBalanceFields.forEach(function(el) {
         var debtorId = el.getAttribute('data-debtor-id');
         if (!debtorId || balances[debtorId] === undefined) {
             return;
