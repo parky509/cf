@@ -328,8 +328,9 @@ $wpdb->query(
     )
 );
 $debtors = $wpdb->get_results(
-    "SELECT SQL_NO_CACHE d.*
+    "SELECT SQL_NO_CACHE d.*, COALESCE(latest.balance_after, d.total_debt) AS total_debt
     FROM `{$safe_debtors_table}` d
+    LEFT JOIN {$latest_debt_table} latest ON latest.debtor_id = d.id
     WHERE d.status = 'active'
     ORDER BY d.name ASC"
 );
