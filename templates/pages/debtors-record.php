@@ -449,7 +449,7 @@ table input{width:50px}
 <?php if ($selected_debtor && $action === 'order') : ?>
 <div class="glass">
 <h3 style="color:#001943;margin-top:0"><i class="fas fa-shopping-cart"></i> Order Items</h3>
-<p><strong>Current Debt:</strong> <span style="color:#dc2626">₦<?php echo number_format($selected_debtor->display_debt, 2); ?></span></p>
+<p><strong>Current Debt:</strong> <span class="cfi-debtor-balance" data-debtor-id="<?php echo esc_attr($selected_debtor->id); ?>" style="color:#dc2626">₦<?php echo number_format($selected_debtor->display_debt, 2); ?></span></p>
 <form method="POST" id="order-form">
 <?php wp_nonce_field('cfi_debtor_order', 'cfi_debtor_order_nonce'); ?>
 <input type="hidden" name="debtor_id" value="<?php echo esc_attr($selected_debtor->id); ?>">
@@ -487,7 +487,7 @@ document.querySelectorAll('input[type="number"]').forEach(function(i){i.addEvent
 <div class="glass">
 <h3 style="color:#001943;margin-top:0"><i class="fas fa-money-check"></i> Record Payment</h3>
 <p><strong>Debtor:</strong> <?php echo esc_html($selected_debtor->name); ?></p>
-<p><strong>Outstanding Balance:</strong> <span style="color:#dc2626;font-size:1.5rem;font-weight:700">₦<?php echo number_format($selected_debtor->display_debt, 2); ?></span></p>
+<p><strong>Outstanding Balance:</strong> <span class="cfi-debtor-balance" data-debtor-id="<?php echo esc_attr($selected_debtor->id); ?>" style="color:#dc2626;font-size:1.5rem;font-weight:700">₦<?php echo number_format($selected_debtor->display_debt, 2); ?></span></p>
 <?php if ($selected_debtor->display_debt <= 0) : ?>
 <div style="background:#dcfce7;color:#166534;padding:1rem;border-radius:8px;margin:1rem 0"><i class="fas fa-check-circle"></i> No outstanding debt!</div>
 <a href="<?php echo esc_url(remove_query_arg(array('debtor','action'))); ?>" class="btn btn-primary">Back to Debtors</a>
@@ -560,10 +560,10 @@ if(Math.abs(diff)>0.01&&tot>0){w.style.display='block';if(diff>0){w.textContent=
 <?php else : ?>
 <div class="card-grid">
 <?php foreach ($debtors as $debtor) : ?>
-<div class="card">
+<div class="card" data-debtor-id="<?php echo esc_attr($debtor->id); ?>">
 <h3 class="card-name"><?php echo esc_html($debtor->name); ?></h3>
 <?php if ($debtor->phone) : ?><p class="card-phone"><i class="fas fa-phone"></i> <?php echo esc_html($debtor->phone); ?></p><?php endif; ?>
-<div class="card-balance <?php echo $debtor->display_debt <= 0 ? 'zero' : ''; ?>">₦<?php echo number_format($debtor->display_debt, 2); ?></div>
+<div class="card-balance cfi-debtor-balance <?php echo $debtor->display_debt <= 0 ? 'zero' : ''; ?>" data-debtor-id="<?php echo esc_attr($debtor->id); ?>">₦<?php echo number_format($debtor->display_debt, 2); ?></div>
 <div class="card-actions">
 <a href="<?php echo esc_url(add_query_arg(array('debtor'=>$debtor->id,'action'=>'order'))); ?>" class="btn btn-primary"><i class="fas fa-cart-plus"></i> Order</a>
 <a href="<?php echo esc_url(add_query_arg(array('debtor'=>$debtor->id,'action'=>'pay'))); ?>" class="btn btn-success"><i class="fas fa-money-check"></i> Clear Debt</a>
@@ -829,6 +829,79 @@ function closePayModal(){document.getElementById('pay-modal').style.display='non
 <?php endif; ?>
 
 <script>
+var cfiDebtorAjaxUrl = '<?php echo admin_url('admin-ajax.php'); ?>';
+var cfiDebtorNonce = '<?php echo wp_create_nonce('cfi_nonce'); ?>';
+var cfiSelectedDebtorId = <?php echo $selected_debtor ? (int) $selected_debtor->id : 'null'; ?>;
+
+function cfiFormatDebt(value) {
+    var amount = parseFloat(value) || 0;
+    return '₦' + amount.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function cfiApplyDebtorBalances(balances) {
+    document.querySelectorAll('.card[data-debtor-id]').forEach(function(card) {
+        var debtorId = card.getAttribute('data-debtor-id');
+        if (!debtorId || balances[debtorId] === undefined) {
+            return;
+        }
+        var balanceValue = parseFloat(balances[debtorId]) || 0;
+        var balanceEl = card.querySelector('.card-balance');
+        if (!balanceEl) {
+            return;
+        }
+        balanceEl.textContent = cfiFormatDebt(balanceValue);
+        if (balanceValue <= 0) {
+            balanceEl.classList.add('zero');
+        } else {
+            balanceEl.classList.remove('zero');
+        }
+    });
+    document.querySelectorAll('.cfi-debtor-balance[data-debtor-id]').forEach(function(el) {
+        var debtorId = el.getAttribute('data-debtor-id');
+        if (!debtorId || balances[debtorId] === undefined) {
+            return;
+        }
+        var balanceValue = parseFloat(balances[debtorId]) || 0;
+        el.textContent = cfiFormatDebt(balanceValue);
+        if (cfiSelectedDebtorId && Number(debtorId) === Number(cfiSelectedDebtorId) && typeof debt !== 'undefined') {
+            debt = balanceValue;
+            if (typeof updatePayTotal === 'function') {
+                updatePayTotal();
+            }
+        }
+    });
+}
+
+function cfiRefreshDebtorBalances() {
+    var formData = new FormData();
+    formData.append('action', 'cfi_get_debtor_balances');
+    formData.append('nonce', cfiDebtorNonce);
+    fetch(cfiDebtorAjaxUrl, {
+        method: 'POST',
+        body: formData,
+        credentials: 'same-origin',
+        cache: 'no-store'
+    })
+    .then(function(response) {
+        return response.json();
+    })
+    .then(function(data) {
+        if (data && data.success && data.data && data.data.balances) {
+            cfiApplyDebtorBalances(data.data.balances);
+        }
+    })
+    .catch(function() {
+        return null;
+    });
+}
+
+cfiRefreshDebtorBalances();
+document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) {
+        cfiRefreshDebtorBalances();
+    }
+});
+
 // Bluetooth thermal printer support
 var bluetoothDevice = null;
 var printerCharacteristic = null;

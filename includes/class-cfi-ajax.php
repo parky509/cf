@@ -63,6 +63,7 @@ class CFI_Ajax {
             
             // Debtors
             'get_debtors',
+            'get_debtor_balances',
             'add_debtor',
             'update_debtor',
             'delete_debtor',
@@ -496,6 +497,43 @@ class CFI_Ajax {
         $debtors = CFI_Debtors::get_all();
         
         wp_send_json_success(array('debtors' => $debtors));
+    }
+
+    /**
+     * Get debtor balances from latest transactions
+     */
+    public function handle_get_debtor_balances() {
+        $this->verify_request();
+        
+        global $wpdb;
+        $debtors_table = $wpdb->prefix . 'cfi_debtors';
+        $trans_table = $wpdb->prefix . 'cfi_debtor_transactions';
+        $safe_debtors_table = esc_sql($debtors_table);
+        $safe_trans_table = esc_sql($trans_table);
+        
+        $latest_debt_table = "(
+            SELECT dt.debtor_id, dt.balance_after
+            FROM `{$safe_trans_table}` dt
+            INNER JOIN (
+                SELECT debtor_id, MAX(id) AS max_id
+                FROM `{$safe_trans_table}`
+                GROUP BY debtor_id
+            ) latest ON latest.max_id = dt.id
+        )";
+        
+        $rows = $wpdb->get_results(
+            "SELECT d.id, COALESCE(latest.balance_after, d.total_debt) AS balance
+            FROM `{$safe_debtors_table}` d
+            LEFT JOIN {$latest_debt_table} AS latest ON latest.debtor_id = d.id
+            WHERE d.status = 'active'"
+        );
+        
+        $balances = array();
+        foreach ($rows as $row) {
+            $balances[$row->id] = floatval($row->balance);
+        }
+        
+        wp_send_json_success(array('balances' => $balances));
     }
     
     /**
