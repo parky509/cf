@@ -749,10 +749,6 @@ $page_load_id = time() . '_' . mt_rand(100000, 999999);
         if (showLoading) {
             setSummaryLoading(true);
         }
-        // Guard against race conditions when multiple refresh calls overlap.
-        function isLatestRequest() {
-            return requestId === refreshToken;
-        }
         var formData = new FormData();
         formData.append('action', 'cfi_get_financial_summary');
         formData.append('nonce', nonce);
@@ -767,7 +763,7 @@ $page_load_id = time() . '_' . mt_rand(100000, 999999);
             return response.json();
         })
         .then(function(data) {
-            if (!isLatestRequest()) {
+            if (requestId !== refreshToken) {
                 return;
             }
             if (data.success && data.data && data.data.summary) {
@@ -778,7 +774,7 @@ $page_load_id = time() . '_' . mt_rand(100000, 999999);
             return null;
         })
         .finally(function() {
-            if (showLoading && isLatestRequest()) {
+            if (showLoading && requestId === refreshToken) {
                 setSummaryLoading(false);
             }
         });

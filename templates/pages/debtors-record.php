@@ -861,11 +861,8 @@ window.addEventListener('pageshow', function(event) {
     if (window.performance && typeof window.performance.getEntriesByType === 'function') {
         navEntry = window.performance.getEntriesByType('navigation')[0];
     }
-    var isBackForward = false;
-    // Some browsers use back_forward while others expose back-forward on bfcache restores.
-    if (navEntry && typeof navEntry.type === 'string') {
-        isBackForward = navEntry.type === 'back_forward' || navEntry.type === 'back-forward';
-    }
+    // Some browsers report back_forward when restoring from bfcache.
+    var isBackForward = navEntry && navEntry.type === 'back_forward';
     if (event.persisted || isBackForward) {
         window.location.reload();
     }
