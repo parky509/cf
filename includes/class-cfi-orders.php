@@ -9,6 +9,14 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+if (!function_exists('cfi_format_receipt_time')) {
+    function cfi_format_receipt_time($date, $time) {
+        $format = strlen($time) > 5 ? 'Y-m-d H:i:s' : 'Y-m-d H:i';
+        $date_time = DateTime::createFromFormat($format, trim($date . ' ' . $time), wp_timezone());
+        return $date_time ? $date_time->format('g:i A') : $time;
+    }
+}
+
 class CFI_Orders {
     
     /**

@@ -71,14 +71,6 @@ $debtors = $wpdb->get_results("SELECT * FROM {$debtors_table} WHERE status = 'ac
 
 // Generate unique page ID to break caching
 $page_uid = substr(md5(microtime(true)), 0, 8);
-
-if (!function_exists('cfi_format_receipt_time')) {
-    function cfi_format_receipt_time($date, $time) {
-        $format = strlen($time) > 5 ? 'Y-m-d H:i:s' : 'Y-m-d H:i';
-        $date_time = DateTime::createFromFormat($format, trim($date . ' ' . $time), wp_timezone());
-        return $date_time ? $date_time->format('g:i A') : $time;
-    }
-}
 ?><!DOCTYPE html>
 <html lang="en">
 <head>

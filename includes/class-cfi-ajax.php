@@ -384,12 +384,8 @@ class CFI_Ajax {
         ));
         
         $order_time = $order->order_time;
-        if (!empty($order->order_date) && !empty($order->order_time)) {
-            $format = strlen($order->order_time) > 5 ? 'Y-m-d H:i:s' : 'Y-m-d H:i';
-            $date_time = DateTime::createFromFormat($format, $order->order_date . ' ' . $order->order_time, wp_timezone());
-            if ($date_time) {
-                $order_time = $date_time->format('g:i A');
-            }
+        if (!empty($order->order_date) && !empty($order->order_time) && function_exists('cfi_format_receipt_time')) {
+            $order_time = cfi_format_receipt_time($order->order_date, $order->order_time);
         }
 
         wp_send_json_success(array(
