@@ -314,24 +314,23 @@ $debtors = $wpdb->get_results(
     WHERE d.status = 'active'
     ORDER BY d.name ASC"
 );
-$debtor_updates = array();
 foreach ($debtors as $debtor) {
     if ($debtor->current_debt !== null) {
         $current_debt = floatval($debtor->current_debt);
         if (abs($current_debt - floatval($debtor->total_debt)) > 0.01) {
-            $debtor_updates[$debtor->id] = $current_debt;
+            $wpdb->update(
+                $debtors_table,
+                array(
+                    'total_debt' => $current_debt,
+                    'updated_at' => current_time('mysql')
+                ),
+                array('id' => $debtor->id),
+                array('%f', '%s'),
+                array('%d')
+            );
         }
         $debtor->total_debt = $current_debt;
     }
-}
-foreach ($debtor_updates as $debtor_id => $current_debt) {
-    $wpdb->update(
-        $debtors_table,
-        array('total_debt' => $current_debt),
-        array('id' => $debtor_id),
-        array('%f'),
-        array('%d')
-    );
 }
 $products = CFI_Products::get_all();
 
