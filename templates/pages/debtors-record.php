@@ -431,15 +431,17 @@ table input{width:70px;padding:0.4rem;border:1px solid #e2e8f0;border-radius:4px
 .modal-footer .btn{flex:1;justify-content:center}
 .receipt-info{margin-bottom:1rem;font-size:0.85rem}
 .receipt-info p{margin:0.25rem 0;display:flex;justify-content:space-between}
-.receipt-items{border-top:1px dashed #e2e8f0;border-bottom:1px dashed #e2e8f0;padding:0.5rem 0;margin:0.5rem 0}
-.receipt-table{width:100%;border-collapse:collapse;font-size:0.75rem;table-layout:fixed}
-.receipt-table th{font-weight:600;text-align:center;border-bottom:1px solid #e2e8f0;padding-bottom:0.25rem}
-.receipt-table td{padding:0.2rem 0;text-align:center}
-.receipt-table th:first-child,.receipt-table td:first-child{text-align:left;width:34%}
-.receipt-table th:nth-child(2),.receipt-table td:nth-child(2){text-align:right;width:16%}
+.receipt-items{border-top:1px solid #001943;border-bottom:1px solid #001943;padding:0.75rem 0;margin:0.75rem 0}
+.receipt-table{width:100%;border-collapse:collapse;font-size:0.75rem;table-layout:fixed;border:1px solid #001943}
+.receipt-table th{font-weight:600;text-align:center;border:1px solid #001943;padding:0.3rem 0.2rem;background:#f1f5f9}
+.receipt-table td{padding:0.3rem 0.2rem;text-align:center;border:1px solid #001943}
+.receipt-table th:first-child,.receipt-table td:first-child{text-align:left;width:44%}
+.receipt-table th:nth-child(2),.receipt-table td:nth-child(2){text-align:right;width:18%}
 .receipt-table th:nth-child(3),.receipt-table td:nth-child(3){width:12%}
-.receipt-table th:nth-child(4),.receipt-table td:nth-child(4){width:16%;color:#dc2626}
-.receipt-table th:nth-child(5),.receipt-table td:nth-child(5){text-align:right;width:22%;font-weight:600}
+.receipt-table th:nth-child(4),.receipt-table td:nth-child(4){text-align:right;width:26%;font-weight:600}
+.receipt-table .discount-row td{font-size:0.7rem;font-style:italic;background:#f8fafc}
+.receipt-table .discount-label{text-align:left}
+.receipt-table .discount-value{text-align:right;color:#dc2626;font-weight:600}
 .receipt-total{font-size:1.1rem;font-weight:700;color:#001943;border-top:2px solid #001943;padding-top:0.5rem;margin-top:0.5rem;display:flex;justify-content:space-between}
 .receipt-footer{text-align:center;margin-top:1rem;padding-top:1rem;border-top:2px dashed #e2e8f0;font-size:0.75rem;color:#64748b}
 @media(max-width:768px){
@@ -606,22 +608,32 @@ if(Math.abs(diff)>0.01&&tot>0){w.style.display='block';if(diff>0){w.textContent=
 <p><span>Debtor:</span><strong style="color:#dc2626"><?php echo esc_html($order_receipt['debtor_name']); ?></strong></p>
 <p><span>Staff:</span><?php echo esc_html($order_receipt['staff']); ?></p>
 </div>
+<?php
+$order_discount_total = 0;
+foreach ($order_receipt['items'] as $item) {
+    $order_discount_total += (float) $item['discount'];
+}
+?>
 <div class="receipt-items">
 <table class="receipt-table">
-<thead><tr><th>Item</th><th>Price</th><th>Qty</th><th>Disc</th><th>Total</th></tr></thead>
+<thead><tr><th>Item</th><th>Price</th><th>Qty</th><th>Total</th></tr></thead>
 <tbody>
 <?php foreach ($order_receipt['items'] as $item) : ?>
-<tr>
+<tr class="item-row">
     <td><?php echo esc_html($item['product_name']); ?></td>
     <td>₦<?php echo cfi_format_receipt_value($item['price']); ?></td>
     <td><?php echo cfi_format_receipt_value($item['quantity']); ?></td>
-    <td><?php echo $item['discount'] > 0 ? '-₦' . cfi_format_receipt_value($item['discount']) : '-'; ?></td>
     <td>₦<?php echo cfi_format_receipt_value($item['total']); ?></td>
+</tr>
+<tr class="discount-row">
+    <td class="discount-label" colspan="3">Discount</td>
+    <td class="discount-value"><?php echo $item['discount'] > 0 ? '-₦' . cfi_format_receipt_value($item['discount']) : '-'; ?></td>
 </tr>
 <?php endforeach; ?>
 </tbody>
 </table>
 </div>
+<p style="display:flex;justify-content:space-between;color:#dc2626;font-weight:600"><span>Total Discount:</span><span>-₦<?php echo cfi_format_receipt_value($order_discount_total); ?></span></p>
 <div class="receipt-total"><span>Order Total:</span><span>₦<?php echo cfi_format_receipt_value($order_receipt['total']); ?></span></div>
 <p style="display:flex;justify-content:space-between;color:#dc2626;font-weight:600"><span>New Balance:</span><span>₦<?php echo cfi_format_receipt_value($order_receipt['new_balance']); ?></span></p>
 <div class="receipt-footer"><p style="margin:0">This is a credit order</p><p style="margin:0">Payment pending</p></div>
@@ -647,12 +659,14 @@ if ('bluetooth' in navigator) {
     text += 'Debtor: <?php echo esc_js($order_receipt['debtor_name']); ?>\n';
     text += 'Staff: <?php echo esc_js($order_receipt['staff']); ?>\n';
     text += line + '\n';
-    text += 'ITEM     PRICE QTY DISC TOTAL\n';
+    text += 'ITEM        PRICE QTY TOTAL\n';
     text += '--------------------------------\n';
     <?php foreach ($order_receipt['items'] as $item) : ?>
-    text += '<?php echo str_pad(substr(esc_js($item['product_name']), 0, 8), 8); ?> <?php echo str_pad(cfi_format_receipt_value($item['price']), 5, ' ', STR_PAD_LEFT); ?> <?php echo str_pad(cfi_format_receipt_value($item['quantity']), 3, ' ', STR_PAD_LEFT); ?> <?php echo str_pad($item['discount'] > 0 ? cfi_format_receipt_value($item['discount']) : '-', 5, ' ', STR_PAD_LEFT); ?> <?php echo str_pad(cfi_format_receipt_value($item['total']), 6, ' ', STR_PAD_LEFT); ?>\n';
+    text += '<?php echo str_pad(substr(esc_js($item['product_name']), 0, 10), 10); ?> <?php echo str_pad(cfi_format_receipt_value($item['price']), 6, ' ', STR_PAD_LEFT); ?> <?php echo str_pad(cfi_format_receipt_value($item['quantity']), 3, ' ', STR_PAD_LEFT); ?> <?php echo str_pad(cfi_format_receipt_value($item['total']), 8, ' ', STR_PAD_LEFT); ?>\n';
+    text += '  Discount:<?php echo str_pad($item['discount'] > 0 ? '-N' . cfi_format_receipt_value($item['discount']) : '-', 21, ' ', STR_PAD_LEFT); ?>\n';
     <?php endforeach; ?>
     text += line + '\n';
+    text += 'Total Discount:   -N<?php echo str_pad(cfi_format_receipt_value($order_discount_total), 9, ' ', STR_PAD_LEFT); ?>\n';
     text += 'ORDER TOTAL:       N<?php echo str_pad(cfi_format_receipt_value($order_receipt['total']), 9, ' ', STR_PAD_LEFT); ?>\n';
     text += 'NEW BALANCE:       N<?php echo str_pad(cfi_format_receipt_value($order_receipt['new_balance']), 9, ' ', STR_PAD_LEFT); ?>\n';
     text += line + '\n';
@@ -684,19 +698,20 @@ h+='.info{margin:10px 0;padding:10px 0;border-bottom:2px solid #000}';
 h+='.info-row{display:flex;justify-content:space-between;margin:6px 0;font-size:12px}';
 h+='.info-row .label{font-weight:600}';
 h+='.info-row .value{font-weight:900}';
-h+='.items-table{width:100%;margin:10px 0;border-collapse:collapse;font-size:12px;table-layout:fixed}';
+h+='.items-table{width:100%;margin:10px 0;border-collapse:collapse;font-size:12px;table-layout:fixed;border:2px solid #000}';
 h+='.items-table th{background:#000;color:#fff;padding:8px 4px;font-size:11px;font-weight:900;text-align:center;border:2px solid #000}';
-h+='.items-table th:first-child{text-align:left;width:30%}';
+h+='.items-table th:first-child{text-align:left;width:44%}';
 h+='.items-table th:nth-child(2){width:18%}';
 h+='.items-table th:nth-child(3){width:12%}';
-h+='.items-table th:nth-child(4){width:15%}';
-h+='.items-table th:nth-child(5){width:25%}';
+h+='.items-table th:nth-child(4){width:26%}';
 h+='.items-table td{padding:8px 4px;border:2px solid #000;vertical-align:middle;font-size:11px}';
 h+='.items-table td:first-child{text-align:left;font-weight:600}';
 h+='.items-table td:nth-child(2){text-align:right}';
 h+='.items-table td:nth-child(3){text-align:center}';
-h+='.items-table td:nth-child(4){text-align:center;color:#c00}';
-h+='.items-table td:nth-child(5){text-align:right;font-weight:900;font-size:12px}';
+h+='.items-table td:nth-child(4){text-align:right;font-weight:900;font-size:12px}';
+h+='.items-table .discount-row td{font-style:italic;background:#f5f5f5}';
+h+='.items-table .discount-label{text-align:left}';
+h+='.items-table .discount-value{text-align:right;color:#c00}';
 h+='.items-table tr:nth-child(even){background:#f0f0f0}';
 h+='.totals{margin:12px 0;padding:10px 0;border-top:3px solid #000}';
 h+='.total-row{display:flex;justify-content:space-between;margin:6px 0;font-size:14px;font-weight:900}';
@@ -717,17 +732,18 @@ h+='<div class="info-row"><span class="label">Debtor:</span><span class="value" 
 h+='<div class="info-row"><span class="label">Staff:</span><span class="value"><?php echo esc_js($order_receipt['staff']); ?></span></div>';
 h+='</div>';
 h+='<table class="items-table">';
-h+='<tr><th>ITEM</th><th>PRICE</th><th>QTY</th><th>DISC</th><th>AMOUNT</th></tr>';
+h+='<tr><th>ITEM</th><th>PRICE</th><th>QTY</th><th>AMOUNT</th></tr>';
 <?php foreach ($order_receipt['items'] as $item) : ?>
-h+='<tr>';
+h+='<tr class="item-row">';
 h+='<td><?php echo esc_js($item['product_name']); ?></td>';
 h+='<td>₦<?php echo cfi_format_receipt_value($item['price']); ?></td>';
 h+='<td style="text-align:center"><?php echo cfi_format_receipt_value($item['quantity']); ?></td>';
-h+='<td style="text-align:center;color:#c00"><?php echo isset($item['discount']) && $item['discount'] > 0 ? '-₦' . cfi_format_receipt_value($item['discount']) : '-'; ?></td>';
 h+='<td><strong>₦<?php echo cfi_format_receipt_value($item['total']); ?></strong></td>';
 h+='</tr>';
+h+='<tr class="discount-row"><td class="discount-label" colspan="3">Discount</td><td class="discount-value"><?php echo isset($item['discount']) && $item['discount'] > 0 ? '-₦' . cfi_format_receipt_value($item['discount']) : '-'; ?></td></tr>';
 <?php endforeach; ?>
 h+='</table>';
+h+='<div class="totals"><div class="total-row"><span>Total Discount:</span><span style="color:#c00">-₦<?php echo cfi_format_receipt_value($order_discount_total); ?></span></div></div>';
 h+='<div class="grand-total"><span>ORDER TOTAL:</span><span>₦<?php echo cfi_format_receipt_value($order_receipt['total']); ?></span></div>';
 h+='<div class="balance-row"><span>NEW BALANCE:</span><span>₦<?php echo cfi_format_receipt_value($order_receipt['new_balance']); ?></span></div>';
 h+='<div class="credit-note">⚠ CREDIT ORDER - PAYMENT PENDING</div>';
