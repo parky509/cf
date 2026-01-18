@@ -1070,7 +1070,7 @@ function generateESCPOSReceipt() {
     text += '<?php echo str_pad(substr(esc_js($item['product_name']), 0, 8), 8); ?> ' +
         String(formatReceiptNumber('<?php echo esc_js($item['price']); ?>')).padStart(5) + ' ' +
         String(formatReceiptNumber('<?php echo esc_js($item['quantity']); ?>')).padStart(3) + ' ' +
-        String(<?php echo $item['discount'] > 0 ? "formatReceiptNumber('{$item['discount']}')" : "'-'"; ?>).padStart(5) + ' ' +
+        String('<?php echo esc_js($item['discount'] > 0 ? cfi_format_receipt_value($item['discount']) : '-'); ?>').padStart(5) + ' ' +
         String(formatReceiptNumber('<?php echo esc_js($item['total']); ?>')).padStart(6) + '\n';
     <?php endforeach; endif; ?>
     text += line + '\n';

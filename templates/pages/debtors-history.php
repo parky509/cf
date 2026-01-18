@@ -230,20 +230,32 @@ foreach ($history as $rec) {
 <script>
 var payData=<?php echo json_encode($pay_data); ?>;
 
+function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, function(match) {
+        return {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        }[match];
+    });
+}
+
 function viewOrder(id){
 var modal=document.getElementById('order-modal'),body=document.getElementById('order-body');
 modal.classList.add('active');
 fetch('<?php echo admin_url('admin-ajax.php'); ?>?action=cfi_get_order_details&order_id='+id)
 .then(function(r){return r.json()})
 .then(function(d){
- if(d.success){var o=d.data,h='<div>';
- h+='<p style="margin:0 0 0.5rem"><strong>Order #:</strong> '+(o.order_number||'N/A')+'</p>';
- h+='<p style="margin:0 0 0.5rem"><strong>Date:</strong> '+(o.order_date||'N/A')+'</p>';
- h+='<p style="margin:0 0 1rem"><strong>Customer:</strong> '+(o.customer_name||'N/A')+'</p>';
- if(o.items&&o.items.length>0){h+='<div style="margin:1rem 0"><table style="width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed">';
- h+='<tr style="font-weight:600;background:#f1f5f9"><th style="text-align:left;width:34%">Item</th><th style="text-align:right;width:16%">Price</th><th style="width:12%">Qty</th><th style="width:16%;color:#c00">Disc</th><th style="text-align:right;width:22%">Total</th></tr>';
- o.items.forEach(function(i){var discountDisplay=Number(i.discount)>0?'-₦'+formatReceiptNumber(i.discount):'-';h+='<tr><td>'+i.product_name+'</td><td style="text-align:right">₦'+formatReceiptNumber(i.price)+'</td><td style="text-align:center">'+formatReceiptNumber(i.quantity)+'</td><td style="text-align:center;color:#c00">'+discountDisplay+'</td><td style="text-align:right">₦'+formatReceiptNumber(i.total)+'</td></tr>'});h+='</table></div>'}
- h+='<div class="order-total" style="font-weight:700"><span>Total:</span><span>₦'+formatReceiptNumber(o.grand_total||0)+'</span></div></div>';
+if(d.success){var o=d.data,h='<div>';
+h+='<p style="margin:0 0 0.5rem"><strong>Order #:</strong> '+escapeHtml(o.order_number||'N/A')+'</p>';
+h+='<p style="margin:0 0 0.5rem"><strong>Date:</strong> '+escapeHtml(o.order_date||'N/A')+'</p>';
+h+='<p style="margin:0 0 1rem"><strong>Customer:</strong> '+escapeHtml(o.customer_name||'N/A')+'</p>';
+if(o.items&&o.items.length>0){h+='<div style="margin:1rem 0"><table style="width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed">';
+h+='<tr style="font-weight:600;background:#f1f5f9"><th style="text-align:left;width:34%">Item</th><th style="text-align:right;width:16%">Price</th><th style="width:12%">Qty</th><th style="width:16%;color:#c00">Disc</th><th style="text-align:right;width:22%">Total</th></tr>';
+o.items.forEach(function(i){var discountDisplay=Number(i.discount)>0?'-₦'+formatReceiptNumber(i.discount):'-';h+='<tr><td>'+escapeHtml(i.product_name)+'</td><td style="text-align:right">₦'+formatReceiptNumber(i.price)+'</td><td style="text-align:center">'+formatReceiptNumber(i.quantity)+'</td><td style="text-align:center;color:#c00">'+discountDisplay+'</td><td style="text-align:right">₦'+formatReceiptNumber(i.total)+'</td></tr>'});h+='</table></div>'}
+h+='<div class="order-total" style="font-weight:700"><span>Total:</span><span>₦'+formatReceiptNumber(o.grand_total||0)+'</span></div></div>';
 body.innerHTML=h}else{body.innerHTML='<div style="text-align:center;padding:2rem;color:#991b1b">Failed to load</div>'}
 }).catch(function(){body.innerHTML='<div style="text-align:center;padding:2rem;color:#991b1b">Error loading</div>'});
 }
