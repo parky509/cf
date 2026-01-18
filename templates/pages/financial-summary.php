@@ -742,9 +742,10 @@ $page_load_id = time() . '_' . mt_rand(100000, 999999);
     }
     
     function refreshSummary(options) {
+        options = options || {};
         refreshToken += 1;
         var requestId = refreshToken;
-        var showLoading = options && options.showLoading;
+        var showLoading = options.showLoading;
         if (showLoading) {
             setSummaryLoading(true);
         }

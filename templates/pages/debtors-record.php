@@ -862,7 +862,7 @@ window.addEventListener('pageshow', function(event) {
         navEntry = window.performance.getEntriesByType('navigation')[0];
     }
     var isBackForward = false;
-    // Some browsers use back_forward (spec) while others expose back-forward on bfcache restores.
+    // Some browsers use back_forward while others expose back-forward on bfcache restores.
     if (navEntry && typeof navEntry.type === 'string') {
         isBackForward = navEntry.type === 'back_forward' || navEntry.type === 'back-forward';
     }
