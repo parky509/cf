@@ -317,7 +317,7 @@ $latest_debt_table = "(
 $wpdb->query(
     $wpdb->prepare(
         "UPDATE `{$safe_debtors_table}` d
-        INNER JOIN {$latest_debt_table} latest ON latest.debtor_id = d.id
+        INNER JOIN {$latest_debt_table} AS latest ON latest.debtor_id = d.id
         SET d.total_debt = latest.balance_after,
             d.updated_at = %s
         WHERE d.status = 'active'
@@ -330,7 +330,7 @@ $wpdb->query(
 $debtors = $wpdb->get_results(
     "SELECT SQL_NO_CACHE d.*, COALESCE(latest.balance_after, d.total_debt) AS total_debt
     FROM `{$safe_debtors_table}` d
-    LEFT JOIN {$latest_debt_table} latest ON latest.debtor_id = d.id
+    LEFT JOIN {$latest_debt_table} AS latest ON latest.debtor_id = d.id
     WHERE d.status = 'active'
     ORDER BY d.name ASC"
 );
