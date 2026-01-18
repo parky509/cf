@@ -33,6 +33,16 @@ $orders_table = $wpdb->prefix . 'cfi_orders';
 $order_items_table = $wpdb->prefix . 'cfi_order_items';
 $trans_table = $wpdb->prefix . 'cfi_debtor_transactions';
 
+if (!function_exists('cfi_get_latest_debtor_balance')) {
+    function cfi_get_latest_debtor_balance($wpdb, $trans_table, $debtor_id, $fallback) {
+        $latest_balance = $wpdb->get_var($wpdb->prepare(
+            "SELECT balance_after FROM `{$trans_table}` WHERE debtor_id = %d ORDER BY id DESC LIMIT 1",
+            $debtor_id
+        ));
+        return $latest_balance !== null ? floatval($latest_balance) : $fallback;
+    }
+}
+
 // Process Take Order Form
 if (isset($_POST['cfi_debtor_order_submit']) && wp_verify_nonce($_POST['cfi_debtor_order_nonce'], 'cfi_debtor_order')) {
     $debtor_id = intval($_POST['debtor_id']);
@@ -125,11 +135,12 @@ if (isset($_POST['cfi_debtor_order_submit']) && wp_verify_nonce($_POST['cfi_debt
                     CFI_Stock::update_credit_supply($item['product_id'], $item['quantity'], current_time('Y-m-d'));
                 }
                 
-                $latest_balance = $wpdb->get_var($wpdb->prepare(
-                    "SELECT balance_after FROM `{$trans_table}` WHERE debtor_id = %d ORDER BY id DESC LIMIT 1",
-                    $debtor_id
-                ));
-                $balance_before = $latest_balance !== null ? floatval($latest_balance) : floatval($debtor->total_debt);
+                $balance_before = cfi_get_latest_debtor_balance(
+                    $wpdb,
+                    $trans_table,
+                    $debtor_id,
+                    floatval($debtor->total_debt)
+                );
                 $new_balance = $balance_before + $total_amount;
                 
                 // CRITICAL: Direct SQL update without any caching
@@ -206,11 +217,12 @@ if (isset($_POST['cfi_clear_debt_submit']) && wp_verify_nonce($_POST['cfi_clear_
             $debtor_id
         ));
         
-        $latest_balance = $debtor ? $wpdb->get_var($wpdb->prepare(
-            "SELECT balance_after FROM `{$trans_table}` WHERE debtor_id = %d ORDER BY id DESC LIMIT 1",
-            $debtor_id
-        )) : null;
-        $balance_before = $latest_balance !== null ? floatval($latest_balance) : ($debtor ? floatval($debtor->total_debt) : 0);
+        $balance_before = $debtor ? cfi_get_latest_debtor_balance(
+            $wpdb,
+            $trans_table,
+            $debtor_id,
+            floatval($debtor->total_debt)
+        ) : 0;
         if ($debtor && $total_payment <= $balance_before) {
             $new_balance = $balance_before - $total_payment;
             
@@ -321,19 +333,12 @@ $latest_debt_table = "(
     ) latest ON latest.max_id = dt.id
 )";
 $debtors = $wpdb->get_results(
-    "SELECT SQL_NO_CACHE d.*, latest.balance_after AS current_balance
+    "SELECT SQL_NO_CACHE d.*, COALESCE(latest.balance_after, d.total_debt) AS display_debt
     FROM `{$safe_debtors_table}` d
     LEFT JOIN {$latest_debt_table} AS latest ON latest.debtor_id = d.id
     WHERE d.status = 'active'
     ORDER BY d.name ASC"
 );
-foreach ($debtors as $debtor) {
-    if (!is_null($debtor->current_balance)) {
-        $debtor->display_debt = floatval($debtor->current_balance);
-    } else {
-        $debtor->display_debt = floatval($debtor->total_debt);
-    }
-}
 $products = CFI_Products::get_all();
 
 $selected_debtor_id = isset($_GET['debtor']) ? intval($_GET['debtor']) : 0;
