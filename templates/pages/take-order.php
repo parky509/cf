@@ -27,7 +27,7 @@ if (isset($_POST['cfi_submit_order']) && wp_verify_nonce($_POST['cfi_order_nonce
     $items = isset($_POST['items']) ? $_POST['items'] : array();
     
     // Validate customer name for transfer payments
-    if ($payment_method === 'transfer' && empty($customer_name)) {
+    if (in_array($payment_method, array('transfer', 'split'), true) && empty($customer_name)) {
         $message = 'Customer name is required for transfer/card payments!';
         $message_type = 'error';
     } else {
@@ -560,7 +560,7 @@ $products = CFI_Products::get_all();
             <!-- Customer Name (Required for Transfer) -->
             <div class="customer-name-group" id="customer-name-group" style="display: block;">
                 <div class="form-group">
-                    <label for="customer_name"><i class="fas fa-user"></i> Customer Name <span style="color: #dc2626;">*</span> (Required for Transfer)</label>
+                    <label for="customer_name"><i class="fas fa-user"></i> Customer Name <span style="color: #dc2626;">*</span> (Required for Transfer/Card or Split)</label>
                     <input type="text" id="customer_name" name="customer_name" class="form-input" placeholder="Enter customer name for transfer...">
                 </div>
             </div>
@@ -797,6 +797,11 @@ function togglePayment(el) {
     } else {
         document.getElementById('payment-method').value = 'cash';
     }
+
+    if (useTransfer && useCash) {
+        document.getElementById('transfer_amount').value = 0;
+        document.getElementById('cash_amount').value = 0;
+    }
     
     calculateTotals();
 }
@@ -872,7 +877,7 @@ function showConfirmation() {
     var method = document.getElementById('payment-method').value;
     var customerName = document.getElementById('customer_name').value.trim();
     
-    if (method === 'transfer' && !customerName) {
+    if ((method === 'transfer' || method === 'split') && !customerName) {
         alert('Customer name is required for transfer/card payments!');
         document.getElementById('customer_name').classList.add('required');
         document.getElementById('customer_name').focus();
