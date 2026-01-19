@@ -117,7 +117,7 @@ if (CFI_Auth::is_cfi_admin()) {
         'slug' => 'cfi-analytics',
         'title' => 'Analytics Overview',
         'icon' => 'fas fa-chart-line',
-        'unicode' => '&#xf201;',
+        'unicode' => '&#xf3e6;',
         'description' => 'View business performance analytics',
     );
 }
