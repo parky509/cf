@@ -280,8 +280,7 @@ $products = CFI_Products::get_all();
         }
         .alert-success { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
         .alert-error { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
-        #order-form-error-text {
-            display: inline-block;
+        .order-form-error-text {
             color: inherit;
             font-weight: 600;
             flex: 1;
@@ -526,7 +525,7 @@ $products = CFI_Products::get_all();
 
     <div id="order-form-error" class="alert alert-error" style="display: none;" role="alert" aria-live="assertive">
         <i class="fas fa-exclamation-circle"></i>
-        <span id="order-form-error-text"></span>
+        <span id="order-form-error-text" class="order-form-error-text"></span>
     </div>
     
     <form method="POST" id="order-form">
