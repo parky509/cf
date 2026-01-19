@@ -112,9 +112,12 @@ $cards = array(
     ),
 );
 
+// Prefix used for CFI page slugs.
+$page_prefix = 'cfi-';
+
 if (CFI_Auth::is_cfi_admin()) {
     $cards[] = array(
-        'slug' => 'cfi-analytics',
+        'slug' => $page_prefix . 'analytics',
         'title' => 'Analytics Overview',
         'icon' => 'fas fa-chart-line',
         'unicode' => '&#xf3e6;',
@@ -124,7 +127,6 @@ if (CFI_Auth::is_cfi_admin()) {
 
 // Build URLs for each card
 foreach ($cards as &$card) {
-    $page_prefix = 'cfi-';
     $page = get_page_by_path($card['slug']);
     if (!$page && strpos($card['slug'], $page_prefix) === 0) {
         $page = get_page_by_path(substr($card['slug'], strlen($page_prefix)));
