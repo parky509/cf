@@ -121,7 +121,7 @@ $page_prefix = CFI_PAGE_PREFIX;
 /**
  * Resolve a page by slug with optional CFI prefix handling.
  *
- * @param string $slug
+ * @param string $slug Non-empty page slug to resolve.
  * @param string $prefix Prefix for CFI page slugs (e.g., "cfi-"). The lookup tries the
  *                       exact slug, then removes the prefix if present, or adds the prefix if absent.
  * @return WP_Post|null
@@ -133,7 +133,7 @@ function cfi_resolve_page_by_slug($slug, $prefix) {
     }
     $has_prefix = $prefix !== '' && (function_exists('str_starts_with')
         ? str_starts_with($slug, $prefix)
-        : substr($slug, 0, strlen($prefix)) === $prefix);
+        : (strlen($slug) >= strlen($prefix) && substr($slug, 0, strlen($prefix)) === $prefix));
     if ($has_prefix) {
         $trimmed = substr($slug, strlen($prefix));
         return get_page_by_path($trimmed);
