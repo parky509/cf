@@ -560,7 +560,7 @@ $products = CFI_Products::get_all();
             <!-- Customer Name (Required for Transfer) -->
             <div class="customer-name-group" id="customer-name-group" style="display: block;">
                 <div class="form-group">
-                    <label for="customer_name"><i class="fas fa-user"></i> Customer Name <span style="color: #dc2626;">*</span> (Required for Transfer/Card or Split)</label>
+                    <label for="customer_name"><i class="fas fa-user"></i> Customer Name <span style="color: #dc2626;">*</span> (Required for Transfer/Card and Split)</label>
                     <input type="text" id="customer_name" name="customer_name" class="form-input" placeholder="Enter customer name for transfer...">
                 </div>
             </div>
@@ -585,6 +585,9 @@ $products = CFI_Products::get_all();
                     <label>Cash Amount (₦)</label>
                     <input type="number" id="cash_amount" name="cash_amount" class="form-input" value="0" min="0" step="0.01" oninput="updatePaymentBalance()">
                 </div>
+            </div>
+            <div id="split-payment-note" style="display: none; margin-top: 0.5rem; font-size: 0.75rem; color: #64748b;">
+                <i class="fas fa-info-circle"></i> Split payments start at ₦0. Enter transfer and cash amounts manually.
             </div>
             <div id="payment-balance" style="display: none; padding: 0.75rem; background: #fef3c7; border-radius: 8px; margin-top: 0.5rem; font-size: 0.85rem; color: #92400e;">
                 <i class="fas fa-exclamation-triangle"></i> <span id="payment-balance-text"></span>
@@ -796,6 +799,11 @@ function togglePayment(el) {
         document.getElementById('payment-method').value = 'transfer';
     } else {
         document.getElementById('payment-method').value = 'cash';
+    }
+
+    var splitNote = document.getElementById('split-payment-note');
+    if (splitNote) {
+        splitNote.style.display = (useTransfer && useCash) ? 'block' : 'none';
     }
 
     if (useTransfer && useCash) {
