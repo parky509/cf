@@ -122,13 +122,16 @@ $page_prefix = CFI_PAGE_PREFIX;
  * Resolve a page by slug with optional CFI prefix handling.
  *
  * @param string $slug
- * @param string $prefix
+ * @param string $prefix Prefix for CFI page slugs (e.g., "cfi-").
  * @return WP_Post|null
  */
 function cfi_resolve_page_by_slug($slug, $prefix) {
     $page = get_page_by_path($slug);
     if ($page) {
         return $page;
+    }
+    if ($prefix === '') {
+        return null;
     }
     $has_prefix = substr($slug, 0, strlen($prefix)) === $prefix;
     if ($has_prefix) {
