@@ -25,14 +25,14 @@ if (isset($_POST['cfi_submit_order']) && wp_verify_nonce($_POST['cfi_order_nonce
     global $wpdb;
     
     $payment_method = sanitize_text_field($_POST['payment_method']);
-    $customer_name = sanitize_text_field($_POST['customer_name'] ?? '');
+    $customer_name = isset($_POST['customer_name']) ? sanitize_text_field($_POST['customer_name']) : '';
     $transfer_amount = floatval($_POST['transfer_amount']);
     $cash_amount = floatval($_POST['cash_amount']);
     $bank_name = sanitize_text_field($_POST['bank_name']);
     $items = isset($_POST['items']) ? $_POST['items'] : array();
     
     $customer_name_methods = array('transfer', 'split');
-    $customer_name_message = 'Customer name is required for transfer-only or transfer + cash payments.';
+    $customer_name_message = 'Customer name is required for transfer-only or split (transfer + cash) payments.';
 
     // Validate customer name for transfer and split payments
     if (in_array($payment_method, $customer_name_methods, true) && empty($customer_name)) {
@@ -1109,7 +1109,7 @@ function showCustomerNameError(message) {
     if (!customerNameError) {
         return;
     }
-    customerNameError.textContent = message;
+    customerNameError.textContent = message ? String(message) : '';
     customerNameError.style.display = 'block';
 }
 
@@ -1123,13 +1123,14 @@ function clearCustomerNameError() {
 }
 
 var customerNameInput = document.getElementById('customer_name');
-if (customerNameInput) {
+if (customerNameInput && !customerNameInput.dataset.listenerAttached) {
     customerNameInput.addEventListener('input', function() {
         if (customerNameInput.value.trim()) {
             clearCustomerNameError();
             customerNameInput.classList.remove('required');
         }
     });
+    customerNameInput.dataset.listenerAttached = 'true';
 }
 
 // Bluetooth thermal printer connection
