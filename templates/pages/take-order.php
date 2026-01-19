@@ -14,6 +14,7 @@ CFI_Database::create_tables();
 $message = '';
 $message_type = '';
 $receipt_data = null;
+$payment_tolerance = 0.01;
 
 // Process order submission
 if (isset($_POST['cfi_submit_order']) && wp_verify_nonce($_POST['cfi_order_nonce'], 'cfi_take_order')) {
@@ -70,8 +71,6 @@ if (isset($_POST['cfi_submit_order']) && wp_verify_nonce($_POST['cfi_order_nonce
             $grand_total = $total_amount - $total_discount;
             $order_number = 'ORD-' . gmdate('Ymd') . '-' . substr(uniqid(), -6);
             $payment_error = '';
-            $payment_tolerance = 0.01;
-
             if ($payment_method === 'transfer') {
                 $payment_diff = $grand_total - $transfer_amount;
                 if (abs($payment_diff) > $payment_tolerance) {
@@ -765,8 +764,10 @@ function clearFormError() {
     }
 }
 
+var paymentTolerance = <?php echo esc_js($payment_tolerance); ?>;
+
 function getPaymentValidationMessage(method, diff) {
-    if (Math.abs(diff) <= 0.01) {
+    if (Math.abs(diff) <= paymentTolerance) {
         return '';
     }
     var amount = Math.abs(diff).toLocaleString();
@@ -777,6 +778,12 @@ function getPaymentValidationMessage(method, diff) {
         return 'Transfer amount must match the grand total for transfer-only payments. Difference: ₦' + amount + '.';
     }
     return '';
+}
+
+function getPaymentDifference(grandTotal) {
+    var transferAmt = parseFloat(document.getElementById('transfer_amount').value) || 0;
+    var cashAmt = parseFloat(document.getElementById('cash_amount').value) || 0;
+    return grandTotal - (transferAmt + cashAmt);
 }
 function calculateRow(input) {
     var row = input.closest('.order-row');
@@ -888,17 +895,14 @@ function updatePaymentBalance() {
         grandTotal += (price * qty) - disc;
     });
     
-    var transferAmt = parseFloat(document.getElementById('transfer_amount').value) || 0;
-    var cashAmt = parseFloat(document.getElementById('cash_amount').value) || 0;
-    var totalPayment = transferAmt + cashAmt;
-    var diff = grandTotal - totalPayment;
+    var diff = getPaymentDifference(grandTotal);
     var method = document.getElementById('payment-method').value;
     var message = getPaymentValidationMessage(method, diff);
     
     var balanceDiv = document.getElementById('payment-balance');
     var balanceText = document.getElementById('payment-balance-text');
     
-    if (Math.abs(diff) > 0.01 && grandTotal > 0) {
+    if (Math.abs(diff) > paymentTolerance && grandTotal > 0) {
         balanceDiv.style.display = 'block';
         if (!message) {
             message = diff > 0
@@ -998,7 +1002,7 @@ function showConfirmation() {
     }
     
     var grandTotal = subtotal - totalDisc;
-    var paymentDiff = grandTotal - ((parseFloat(document.getElementById('transfer_amount').value) || 0) + (parseFloat(document.getElementById('cash_amount').value) || 0));
+    var paymentDiff = getPaymentDifference(grandTotal);
     var paymentError = getPaymentValidationMessage(method, paymentDiff);
 
     if (paymentError) {
