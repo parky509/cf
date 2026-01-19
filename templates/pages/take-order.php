@@ -362,8 +362,8 @@ $products = CFI_Products::get_all();
         }
         .receipt-content {
             background: white;
+            width: 80mm;
             max-width: 80mm;
-            width: 100%;
             max-height: 90vh;
             overflow-y: auto;
             border-radius: 12px;
@@ -377,11 +377,11 @@ $products = CFI_Products::get_all();
             justify-content: space-between;
             align-items: center;
         }
-        .receipt-body { padding: 1rem; font-family: 'Courier New', monospace; font-size: 0.8rem; width: 100%; box-sizing: border-box; }
+        .receipt-body { padding: 2mm; font-family: 'Courier New', monospace; font-size: 0.8rem; width: 100%; box-sizing: border-box; }
         .receipt-company { text-align: center; margin-bottom: 0.5rem; }
-        .receipt-company h2 { color: #001943; margin: 0 0 0.25rem 0; font-weight: 800; letter-spacing: 0.5px; }
+        .receipt-company h2 { color: #001943; margin: 0 0 0.25rem 0; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; }
         .receipt-company p { color: #64748b; font-size: 0.8rem; margin: 0; }
-        .receipt-divider { border-top: 1px dashed #001943; margin: 0.5rem 0; }
+        .receipt-divider { border-top: 1px solid #001943; margin: 0.5rem 0; }
         .receipt-info { margin-bottom: 0.5rem; font-size: 0.85rem; }
         .receipt-info p { margin: 0.25rem 0; display: flex; justify-content: space-between; }
         .receipt-items { margin: 0.5rem 0; }
@@ -392,7 +392,7 @@ $products = CFI_Products::get_all();
         .receipt-item:last-child { border-bottom: none; }
         .receipt-item-discount { display: flex; justify-content: space-between; font-size: 0.7rem; margin-top: 0.2rem; }
         .receipt-item-discount .receipt-amount { color: #dc2626; }
-        .receipt-amount { font-weight: 700; }
+        .receipt-amount { font-weight: 800; }
         .receipt-totals { margin-top: 0.5rem; font-size: 0.85rem; }
         .receipt-totals p { display: flex; justify-content: space-between; margin: 0.25rem 0; }
         .receipt-totals .grand { font-size: 1rem; font-weight: 700; color: #001943; }
@@ -446,7 +446,7 @@ $products = CFI_Products::get_all();
         @media print {
             body * { visibility: hidden; }
             .receipt-body, .receipt-body * { visibility: visible; }
-            .receipt-body { position: absolute; left: 0; top: 0; width: 80mm; }
+            .receipt-body { position: absolute; left: 0; top: 0; width: 80mm; padding: 2mm; }
         }
         
         @media (max-width: 768px) {
@@ -1152,13 +1152,13 @@ async function printReceipt() {
     printWindow.document.write('<style>');
     printWindow.document.write('@page{size:80mm auto;margin:0}');
     printWindow.document.write('*{margin:0;padding:0;box-sizing:border-box}');
-    printWindow.document.write('html,body{width:100%!important;max-width:100%!important;margin:0!important;padding:0!important}');
+    printWindow.document.write('html,body{width:80mm!important;max-width:80mm!important;margin:0!important;padding:0!important}');
     printWindow.document.write('body{font-family:"Courier New",Courier,monospace;font-size:12px;line-height:1.4;color:#000;background:#fff}');
-    printWindow.document.write('.receipt{width:100%;padding:3mm}');
+    printWindow.document.write('.receipt{width:80mm;padding:2mm;box-sizing:border-box}');
     printWindow.document.write('.header{text-align:center;margin-bottom:6px}');
     printWindow.document.write('.header h2{font-size:16px;font-weight:800;margin:0 0 4px;letter-spacing:0.5px;text-transform:uppercase}');
     printWindow.document.write('.header p{font-size:11px;margin:0}');
-    printWindow.document.write('.divider{border-top:1px dashed #000;margin:6px 0}');
+    printWindow.document.write('.divider{border-top:1px solid #000;margin:6px 0}');
     printWindow.document.write('.info-row{display:flex;justify-content:space-between;margin:4px 0;font-size:12px}');
     printWindow.document.write('.info-row .value{font-weight:700}');
     printWindow.document.write('.items{margin:6px 0}');
@@ -1168,7 +1168,7 @@ async function printReceipt() {
     printWindow.document.write('.item{padding:4px 0;border-bottom:1px dashed #999}');
     printWindow.document.write('.item:last-child{border-bottom:none}');
     printWindow.document.write('.item-discount{display:flex;justify-content:space-between;font-size:10px;margin-top:2px}');
-    printWindow.document.write('.receipt-amount{font-weight:700}');
+    printWindow.document.write('.receipt-amount{font-weight:800}');
     printWindow.document.write('.totals p,.payments p{display:flex;justify-content:space-between;margin:4px 0;font-size:12px}');
     printWindow.document.write('.totals .grand{font-size:13px;font-weight:700}');
     printWindow.document.write('.footer{text-align:center;margin-top:6px;font-size:10px}');

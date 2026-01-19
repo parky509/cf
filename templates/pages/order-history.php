@@ -105,14 +105,14 @@ foreach ($orders as $order) {
         /* Receipt Modal */
         .receipt-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; padding: 1rem; }
         .receipt-modal.active { display: flex; }
-        .receipt-content { background: white; max-width: 80mm; width: 100%; max-height: 90vh; overflow-y: auto; border-radius: 12px; }
+        .receipt-content { background: white; width: 80mm; max-width: 80mm; max-height: 90vh; overflow-y: auto; border-radius: 12px; }
         .receipt-header { background: #001943; color: white; padding: 1rem; display: flex; justify-content: space-between; align-items: center; border-radius: 12px 12px 0 0; }
         .receipt-header h3 { margin: 0; font-size: 1rem; }
-        .receipt-body { padding: 1rem; font-family: 'Courier New', monospace; font-size: 0.8rem; width: 100%; box-sizing: border-box; }
+        .receipt-body { padding: 2mm; font-family: 'Courier New', monospace; font-size: 0.8rem; width: 100%; box-sizing: border-box; }
         .receipt-company { text-align: center; margin-bottom: 0.5rem; }
-        .receipt-company h2 { margin: 0; font-size: 1rem; font-weight: 800; letter-spacing: 0.5px; }
+        .receipt-company h2 { margin: 0; font-size: 1rem; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; }
         .receipt-company p { margin: 0; font-size: 0.75rem; color: #666; }
-        .receipt-divider { border-top: 1px dashed #333; margin: 0.5rem 0; }
+        .receipt-divider { border-top: 1px solid #333; margin: 0.5rem 0; }
         .receipt-info p { margin: 0.2rem 0; display: flex; justify-content: space-between; }
         .receipt-items { margin: 0.5rem 0; }
         .receipt-row { display: grid; grid-template-columns: 1.6fr 0.8fr 0.5fr 0.9fr; gap: 6px; align-items: baseline; }
@@ -122,7 +122,7 @@ foreach ($orders as $order) {
         .receipt-item:last-child { border-bottom: none; }
         .receipt-item-discount { display: flex; justify-content: space-between; font-size: 0.7rem; margin-top: 0.2rem; }
         .receipt-item-discount .receipt-amount { color: #dc2626; }
-        .receipt-amount { font-weight: 700; }
+        .receipt-amount { font-weight: 800; }
         .receipt-totals p { margin: 0.2rem 0; display: flex; justify-content: space-between; }
         .receipt-totals .grand { font-weight: 700; font-size: 1rem; }
         .receipt-footer { text-align: center; margin-top: 0.5rem; font-size: 0.75rem; color: #666; }
@@ -137,7 +137,7 @@ foreach ($orders as $order) {
         @media print {
             body * { visibility: hidden; }
             #print-area, #print-area * { visibility: visible; }
-            #print-area { position: absolute; left: 0; top: 0; width: 80mm; margin: 0; padding: 2mm; }
+            #print-area { position: absolute; left: 0; top: 0; width: 80mm; max-width: 80mm; margin: 0; padding: 2mm; box-sizing: border-box; }
         }
     </style>
 </head>
@@ -527,11 +527,12 @@ async function printReceipt() {
     printWindow.document.write('<style>');
     printWindow.document.write('@page{size:80mm auto;margin:0}');
     printWindow.document.write('*{margin:0;padding:0;box-sizing:border-box}');
-    printWindow.document.write('body{font-family:"Courier New",Courier,monospace;font-size:12px;width:80mm;max-width:80mm;margin:0 auto;padding:3mm;line-height:1.4;color:#000}');
+    printWindow.document.write('body{font-family:"Courier New",Courier,monospace;font-size:12px;width:80mm;max-width:80mm;margin:0;padding:0;line-height:1.4;color:#000}');
+    printWindow.document.write('#print-content{width:80mm;padding:2mm;box-sizing:border-box}');
     printWindow.document.write('.receipt-company{text-align:center;margin-bottom:6px}');
-    printWindow.document.write('.receipt-company h2{font-size:16px;font-weight:800;margin:0 0 4px;letter-spacing:0.5px}');
+    printWindow.document.write('.receipt-company h2{font-size:16px;font-weight:800;margin:0 0 4px;letter-spacing:0.5px;text-transform:uppercase}');
     printWindow.document.write('.receipt-company p{font-size:11px;margin:0}');
-    printWindow.document.write('.receipt-divider{border-top:1px dashed #000;margin:6px 0}');
+    printWindow.document.write('.receipt-divider{border-top:1px solid #000;margin:6px 0}');
     printWindow.document.write('.receipt-info p{display:flex;justify-content:space-between;margin:4px 0;font-size:12px}');
     printWindow.document.write('.receipt-row{display:grid;grid-template-columns:1.6fr 0.8fr 0.5fr 0.9fr;gap:6px;align-items:baseline;font-size:11px}');
     printWindow.document.write('.receipt-row .item-price,.receipt-row .item-qty,.receipt-row .item-total{text-align:right}');
@@ -539,11 +540,11 @@ async function printReceipt() {
     printWindow.document.write('.receipt-item{padding:4px 0;border-bottom:1px dashed #999}');
     printWindow.document.write('.receipt-item:last-child{border-bottom:none}');
     printWindow.document.write('.receipt-item-discount{display:flex;justify-content:space-between;font-size:10px;margin-top:2px}');
-    printWindow.document.write('.receipt-amount{font-weight:700}');
+    printWindow.document.write('.receipt-amount{font-weight:800}');
     printWindow.document.write('.receipt-totals p{display:flex;justify-content:space-between;margin:4px 0;font-size:12px}');
     printWindow.document.write('.receipt-totals .grand{font-size:13px;font-weight:700}');
     printWindow.document.write('.receipt-footer{text-align:center;margin-top:6px;font-size:10px}');
-    printWindow.document.write('@media print{body{padding:0}}');
+    printWindow.document.write('@media print{body{margin:0;padding:0}}');
     printWindow.document.write('</style></head><body>');
     printWindow.document.write(printContent.innerHTML);
     printWindow.document.write('</body></html>');
