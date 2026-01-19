@@ -14,7 +14,11 @@ CFI_Database::create_tables();
 $message = '';
 $message_type = '';
 $receipt_data = null;
-$payment_tolerance = 0.01;
+$payment_tolerance = defined('CFI_PAYMENT_TOLERANCE') ? CFI_PAYMENT_TOLERANCE : 0.01;
+$payment_error_messages = array(
+    'transfer' => 'Transfer amount must match the grand total for transfer-only payments.',
+    'split' => 'Split payments require the transfer and cash amounts to equal the grand total.'
+);
 
 // Process order submission
 if (isset($_POST['cfi_submit_order']) && wp_verify_nonce($_POST['cfi_order_nonce'], 'cfi_take_order')) {
@@ -74,12 +78,12 @@ if (isset($_POST['cfi_submit_order']) && wp_verify_nonce($_POST['cfi_order_nonce
             if ($payment_method === 'transfer') {
                 $payment_diff = $grand_total - $transfer_amount;
                 if (abs($payment_diff) > $payment_tolerance) {
-                    $payment_error = 'Transfer amount must match the grand total for transfer-only payments.';
+                    $payment_error = $payment_error_messages['transfer'];
                 }
             } elseif ($payment_method === 'split') {
                 $payment_diff = $grand_total - ($transfer_amount + $cash_amount);
                 if (abs($payment_diff) > $payment_tolerance) {
-                    $payment_error = 'Split payments require the transfer and cash amounts to equal the grand total.';
+                    $payment_error = $payment_error_messages['split'];
                 }
             }
 
@@ -765,6 +769,7 @@ function clearFormError() {
 }
 
 var paymentTolerance = <?php echo esc_js($payment_tolerance); ?>;
+var paymentErrorMessages = <?php echo wp_json_encode($payment_error_messages); ?>;
 
 function getPaymentValidationMessage(method, diff) {
     if (Math.abs(diff) <= paymentTolerance) {
@@ -772,17 +777,23 @@ function getPaymentValidationMessage(method, diff) {
     }
     var amount = Math.abs(diff).toLocaleString();
     if (method === 'split') {
-        return 'Split payments require the transfer and cash amounts to equal the grand total. Difference: ₦' + amount + '.';
+        return paymentErrorMessages.split + ' Difference: ₦' + amount + '.';
     }
     if (method === 'transfer') {
-        return 'Transfer amount must match the grand total for transfer-only payments. Difference: ₦' + amount + '.';
+        return paymentErrorMessages.transfer + ' Difference: ₦' + amount + '.';
     }
     return '';
 }
 
-function getPaymentDifference(grandTotal) {
+function getPaymentDifference(grandTotal, method) {
     var transferAmt = parseFloat(document.getElementById('transfer_amount').value) || 0;
     var cashAmt = parseFloat(document.getElementById('cash_amount').value) || 0;
+    if (method === 'transfer') {
+        return grandTotal - transferAmt;
+    }
+    if (method === 'cash') {
+        return grandTotal - cashAmt;
+    }
     return grandTotal - (transferAmt + cashAmt);
 }
 function calculateRow(input) {
@@ -895,8 +906,8 @@ function updatePaymentBalance() {
         grandTotal += (price * qty) - disc;
     });
     
-    var diff = getPaymentDifference(grandTotal);
     var method = document.getElementById('payment-method').value;
+    var diff = getPaymentDifference(grandTotal, method);
     var message = getPaymentValidationMessage(method, diff);
     
     var balanceDiv = document.getElementById('payment-balance');
@@ -1002,7 +1013,7 @@ function showConfirmation() {
     }
     
     var grandTotal = subtotal - totalDisc;
-    var paymentDiff = getPaymentDifference(grandTotal);
+    var paymentDiff = getPaymentDifference(grandTotal, method);
     var paymentError = getPaymentValidationMessage(method, paymentDiff);
 
     if (paymentError) {
