@@ -115,6 +115,16 @@ $cards = array(
 // Prefix used for CFI page slugs.
 $page_prefix = 'cfi-';
 
+function cfi_resolve_page_by_slug($slug, $prefix) {
+    $page = get_page_by_path($slug);
+    if (!$page && substr($slug, 0, strlen($prefix)) === $prefix) {
+        $page = get_page_by_path(substr($slug, strlen($prefix)));
+    } elseif (!$page) {
+        $page = get_page_by_path($prefix . $slug);
+    }
+    return $page;
+}
+
 if (CFI_Auth::is_cfi_admin()) {
     $cards[] = array(
         'slug' => $page_prefix . 'analytics',
@@ -127,12 +137,7 @@ if (CFI_Auth::is_cfi_admin()) {
 
 // Build URLs for each card
 foreach ($cards as &$card) {
-    $page = get_page_by_path($card['slug']);
-    if (!$page && strpos($card['slug'], $page_prefix) === 0) {
-        $page = get_page_by_path(substr($card['slug'], strlen($page_prefix)));
-    } elseif (!$page) {
-        $page = get_page_by_path($page_prefix . $card['slug']);
-    }
+    $page = cfi_resolve_page_by_slug($card['slug'], $page_prefix);
     if ($page) {
         $card['url'] = get_permalink($page->ID);
     } else {
