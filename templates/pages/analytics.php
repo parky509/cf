@@ -40,10 +40,18 @@ if (!empty($range['start_date'])) {
 if (!empty($range['end_date'])) {
     $detail_range_args['end'] = $range['end_date'];
 }
-$detail_date = !empty($range['end_date']) ? $range['end_date'] : (!empty($range['start_date']) ? $range['start_date'] : current_time('Y-m-d'));
+$detail_date = current_time('Y-m-d');
+if (!empty($range['end_date'])) {
+    $detail_date = $range['end_date'];
+} elseif (!empty($range['start_date'])) {
+    $detail_date = $range['start_date'];
+}
 $resolve_page_url = function($slug, $fallback) {
     $page = get_page_by_path($slug);
-    return $page ? get_permalink($page->ID) : home_url($fallback);
+    if ($page && !empty($page->ID)) {
+        return get_permalink($page->ID);
+    }
+    return home_url($fallback);
 };
 $order_history_url = add_query_arg($detail_range_args, $resolve_page_url('cfi-order-history', '/order-history/'));
 $transfer_history_url = add_query_arg($detail_range_args, $resolve_page_url('cfi-transfer-history', '/transfer-history/'));
