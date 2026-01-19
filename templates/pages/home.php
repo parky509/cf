@@ -131,7 +131,9 @@ function cfi_resolve_page_by_slug($slug, $prefix) {
     if ($page) {
         return $page;
     }
-    $has_prefix = $prefix !== '' && substr($slug, 0, strlen($prefix)) === $prefix;
+    $has_prefix = $prefix !== '' && (function_exists('str_starts_with')
+        ? str_starts_with($slug, $prefix)
+        : substr($slug, 0, strlen($prefix)) === $prefix);
     if ($has_prefix) {
         $trimmed = substr($slug, strlen($prefix));
         return get_page_by_path($trimmed);
