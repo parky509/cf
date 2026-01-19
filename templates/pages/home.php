@@ -112,6 +112,16 @@ $cards = array(
     ),
 );
 
+if (CFI_Auth::is_cfi_admin()) {
+    $cards[] = array(
+        'slug' => 'cfi-analytics',
+        'title' => 'Analytics Overview',
+        'icon' => 'fas fa-chart-line',
+        'unicode' => '&#xf201;',
+        'description' => 'View business performance analytics',
+    );
+}
+
 // Build URLs for each card
 foreach ($cards as &$card) {
     $page = get_page_by_path($card['slug']);
