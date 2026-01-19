@@ -999,7 +999,9 @@ class CFI_Ajax {
         $this->verify_request(true);
 
         $period = isset($_POST['period']) ? sanitize_text_field(wp_unslash($_POST['period'])) : 'daily';
-        $summary = CFI_Financial::get_analytics_summary($period);
+        $start_date = isset($_POST['start_date']) ? sanitize_text_field(wp_unslash($_POST['start_date'])) : '';
+        $end_date = isset($_POST['end_date']) ? sanitize_text_field(wp_unslash($_POST['end_date'])) : '';
+        $summary = CFI_Financial::get_analytics_summary($period, $start_date, $end_date);
 
         wp_send_json_success(array('summary' => $summary));
     }

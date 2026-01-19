@@ -13,7 +13,16 @@ if (!CFI_Auth::is_cfi_admin()) {
 }
 
 $period = isset($_GET['period']) ? sanitize_text_field(wp_unslash($_GET['period'])) : 'daily';
-$summary = CFI_Financial::get_analytics_summary($period);
+$sanitize_date = function($value) {
+    if (empty($value)) {
+        return '';
+    }
+    $value = sanitize_text_field($value);
+    return preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) ? $value : '';
+};
+$start_date = isset($_GET['start_date']) ? $sanitize_date(wp_unslash($_GET['start_date'])) : '';
+$end_date = isset($_GET['end_date']) ? $sanitize_date(wp_unslash($_GET['end_date'])) : '';
+$summary = CFI_Financial::get_analytics_summary($period, $start_date, $end_date);
 $range = $summary['range'] ?? array();
 $range_display = '';
 if (!empty($range['start_display']) && !empty($range['end_display'])) {
@@ -32,6 +41,7 @@ $format_number = function($value) {
 };
 ?>
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <style>
     .cfi-analytics-header {
         display: flex;
@@ -58,6 +68,14 @@ $format_number = function($value) {
     .cfi-analytics-range strong {
         color: #001943;
         font-size: 0.8rem;
+    }
+    .cfi-analytics-date-group {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    .cfi-analytics-date-group .cfi-input {
+        min-width: 140px;
     }
     .cfi-analytics-loading {
         display: none;
@@ -140,6 +158,13 @@ $format_number = function($value) {
                     <option value="weekly" <?php selected($period, 'weekly'); ?>><?php esc_html_e('Weekly', 'chinemerem-foods'); ?></option>
                     <option value="monthly" <?php selected($period, 'monthly'); ?>><?php esc_html_e('Monthly', 'chinemerem-foods'); ?></option>
                 </select>
+            </div>
+            <div class="cfi-filter-group">
+                <label><?php esc_html_e('Date Range', 'chinemerem-foods'); ?></label>
+                <div class="cfi-analytics-date-group">
+                    <input type="date" id="cfi-analytics-start" class="cfi-input" value="<?php echo esc_attr($range['start_date'] ?? ''); ?>">
+                    <input type="date" id="cfi-analytics-end" class="cfi-input" value="<?php echo esc_attr($range['end_date'] ?? ''); ?>">
+                </div>
             </div>
             <div class="cfi-analytics-range">
                 <strong id="cfi-analytics-range-label"><?php echo esc_html($range['label'] ?? ''); ?></strong>
@@ -290,6 +315,8 @@ $format_number = function($value) {
 <script>
     jQuery(document).ready(function($) {
         const summaryData = <?php echo wp_json_encode($summary, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>;
+        const $startInput = $('#cfi-analytics-start');
+        const $endInput = $('#cfi-analytics-end');
         const currencyLocale = {
             style: 'currency',
             currency: 'NGN',
@@ -344,9 +371,34 @@ $format_number = function($value) {
             $('#cfi-analytics-loading').toggleClass('visible', isLoading);
         }
 
-        function fetchSummary(period) {
+        function updateUrl(period, startDate, endDate) {
+            const url = new URL(window.location.href);
+            if (period) {
+                url.searchParams.set('period', period);
+            }
+            if (startDate) {
+                url.searchParams.set('start_date', startDate);
+            } else {
+                url.searchParams.delete('start_date');
+            }
+            if (endDate) {
+                url.searchParams.set('end_date', endDate);
+            } else {
+                url.searchParams.delete('end_date');
+            }
+            window.history.replaceState({}, '', url.toString());
+        }
+
+        function fetchSummary(period, dates) {
             setLoading(true);
-            CFI.ajax.request('get_analytics_summary', { period: period })
+            const payload = { period: period };
+            if (dates && dates.start) {
+                payload.start_date = dates.start;
+            }
+            if (dates && dates.end) {
+                payload.end_date = dates.end;
+            }
+            CFI.ajax.request('get_analytics_summary', payload)
                 .then(function(data) {
                     if (data && data.summary) {
                         updateSummary(data.summary);
@@ -364,14 +416,25 @@ $format_number = function($value) {
                 });
         }
 
+        function getDateFilters() {
+            return {
+                start: $startInput.val(),
+                end: $endInput.val()
+            };
+        }
+
         $('#cfi-analytics-period').on('change', function() {
             const period = $(this).val();
-            const url = new URL(window.location.href);
-            if (url.searchParams.get('period') !== period) {
-                url.searchParams.set('period', period);
-                window.history.replaceState({}, '', url.toString());
-            }
-            fetchSummary(period);
+            const dates = getDateFilters();
+            updateUrl(period, dates.start, dates.end);
+            fetchSummary(period, dates);
+        });
+
+        $startInput.add($endInput).on('change', function() {
+            const period = $('#cfi-analytics-period').val();
+            const dates = getDateFilters();
+            updateUrl(period, dates.start, dates.end);
+            fetchSummary(period, dates);
         });
 
         updateSummary(summaryData);

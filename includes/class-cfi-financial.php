@@ -22,6 +22,22 @@ class CFI_Financial {
     }
 
     /**
+     * Normalize analytics date input
+     */
+    private static function normalize_analytics_date($date) {
+        if (empty($date)) {
+            return '';
+        }
+
+        $date = sanitize_text_field($date);
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+            return '';
+        }
+
+        return $date;
+    }
+
+    /**
      * Ensure analytics query results return an object
      */
     private static function ensure_result_object($result) {
@@ -462,10 +478,30 @@ class CFI_Financial {
     /**
      * Get analytics summary for a period
      */
-    public static function get_analytics_summary($period = 'daily') {
+    public static function get_analytics_summary($period = 'daily', $start_date = '', $end_date = '') {
         global $wpdb;
 
         $range = self::get_analytics_range($period);
+        $custom_start = self::normalize_analytics_date($start_date);
+        $custom_end = self::normalize_analytics_date($end_date);
+
+        if ($custom_start || $custom_end) {
+            $timezone = wp_timezone();
+            $range['period'] = 'custom';
+            $range['start_date'] = $custom_start ?: $range['start_date'];
+            $range['end_date'] = $custom_end ?: $range['end_date'];
+
+            if ($range['end_date'] < $range['start_date']) {
+                $swap = $range['start_date'];
+                $range['start_date'] = $range['end_date'];
+                $range['end_date'] = $swap;
+            }
+
+            $range['label'] = __('Custom Range', 'chinemerem-foods');
+            $range['start_display'] = self::format_analytics_display_date($range['start_date'], $timezone);
+            $range['end_display'] = self::format_analytics_display_date($range['end_date'], $timezone);
+        }
+
         $start_date = $range['start_date'];
         $end_date = $range['end_date'];
 
