@@ -153,6 +153,10 @@ if (CFI_Auth::is_cfi_admin()) {
 
 // Build URLs for each card
 foreach ($cards as &$card) {
+    if ($card['slug'] === 'analytics') {
+        $card['url'] = home_url('/analytics/');
+        continue;
+    }
     $page = cfi_resolve_page_by_slug($card['slug'], $page_prefix);
     if ($page) {
         $card['url'] = get_permalink($page->ID);
