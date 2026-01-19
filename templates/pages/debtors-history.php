@@ -522,7 +522,7 @@ h+='@media print{.no-print{display:none !important}}';
     h+='</div>';
     h+='<div class="divider"></div>';
     h+='<div class="footer"><p>This is a credit order - Payment pending</p><p style="margin-top:5px">Powered by BendlessTech</p></div>';
- h+='</div></body></html>';
+h+='</div></body></html>';
 w.document.write(h);w.document.close();
 w.onload=function(){setTimeout(function(){w.print()},300)};
 }
@@ -583,7 +583,7 @@ h+='@media print{.no-print{display:none !important}}';
     h+='</div>';
     h+='<div class="divider"></div>';
      h+='<div class="footer"><p>Payment received with thanks!</p><p style="margin-top:5px">Powered by BendlessTech</p></div>';
- h+='</div></body></html>';
+h+='</div></body></html>';
 w.document.write(h);w.document.close();
 w.onload=function(){setTimeout(function(){w.print()},300)};
 }

@@ -446,7 +446,7 @@ $products = CFI_Products::get_all();
         @media print {
             body * { visibility: hidden; }
             .receipt-body, .receipt-body * { visibility: visible; }
-            .receipt-body { position: absolute; left: 0; top: 0; width: 80mm; padding: 2mm; }
+            .receipt-body { position: absolute; left: 0; top: 0; width: 80mm; max-width: 80mm; padding: 2mm; box-sizing: border-box; }
         }
         
         @media (max-width: 768px) {
