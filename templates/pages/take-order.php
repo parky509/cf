@@ -25,7 +25,7 @@ if (isset($_POST['cfi_submit_order']) && wp_verify_nonce($_POST['cfi_order_nonce
     global $wpdb;
     
     $payment_method = sanitize_text_field($_POST['payment_method']);
-    $customer_name = isset($_POST['customer_name']) ? trim(sanitize_text_field($_POST['customer_name'])) : '';
+    $customer_name = trim(sanitize_text_field($_POST['customer_name'] ?? ''));
     $transfer_amount = floatval($_POST['transfer_amount']);
     $cash_amount = floatval($_POST['cash_amount']);
     $bank_name = sanitize_text_field($_POST['bank_name']);
@@ -1137,7 +1137,11 @@ function initCustomerNameListener() {
     }
 }
 
-initCustomerNameListener();
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCustomerNameListener);
+} else {
+    initCustomerNameListener();
+}
 
 // Bluetooth thermal printer connection
 var bluetoothDevice = null;
