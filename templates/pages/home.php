@@ -143,7 +143,7 @@ function cfi_resolve_page_by_slug($slug, $prefix) {
 
 if (CFI_Auth::is_cfi_admin()) {
     $cards[] = array(
-        'slug' => $page_prefix . 'analytics',
+        'slug' => 'analytics',
         'title' => 'Analytics Overview',
         'icon' => 'fas fa-chart-line',
         'unicode' => '&#xf3e6;',
