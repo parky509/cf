@@ -26,8 +26,10 @@ if (isset($_POST['cfi_submit_order']) && wp_verify_nonce($_POST['cfi_order_nonce
     $bank_name = sanitize_text_field($_POST['bank_name']);
     $items = isset($_POST['items']) ? $_POST['items'] : array();
     
+    $customer_name_methods = array('transfer', 'split');
+
     // Validate customer name for transfer payments
-    if (in_array($payment_method, array('transfer', 'split'), true) && empty($customer_name)) {
+    if (in_array($payment_method, $customer_name_methods, true) && empty($customer_name)) {
         $message = 'Customer name is required for transfer/card and split payments!';
         $message_type = 'error';
     } else {
@@ -768,6 +770,10 @@ function calculateTotals() {
     updatePaymentBalance();
 }
 
+function requiresCustomerName(method) {
+    return method === 'transfer' || method === 'split';
+}
+
 function togglePayment(el) {
     el.classList.toggle('selected');
     var method = el.dataset.method;
@@ -885,7 +891,7 @@ function showConfirmation() {
     var method = document.getElementById('payment-method').value;
     var customerName = document.getElementById('customer_name').value.trim();
     
-    if ((method === 'transfer' || method === 'split') && !customerName) {
+    if (requiresCustomerName(method) && !customerName) {
         alert('Customer name is required for transfer/card and split payments!');
         document.getElementById('customer_name').classList.add('required');
         document.getElementById('customer_name').focus();
