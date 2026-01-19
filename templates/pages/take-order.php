@@ -28,7 +28,7 @@ if (isset($_POST['cfi_submit_order']) && wp_verify_nonce($_POST['cfi_order_nonce
     
     $customer_name_methods = array('transfer', 'split');
 
-    // Validate customer name for transfer payments
+    // Validate customer name for transfer and split payments
     if (in_array($payment_method, $customer_name_methods, true) && empty($customer_name)) {
         $message = 'Customer name is required for transfer/card and split payments!';
         $message_type = 'error';
@@ -322,6 +322,7 @@ $products = CFI_Products::get_all();
         .payment-method span { font-weight: 600; color: #001943; font-size: 0.85rem; }
         
         .bank-options, .customer-name-group { margin: 1rem 0; }
+        .split-payment-note { display: none; margin-top: 0.5rem; font-size: 0.75rem; color: #64748b; }
         .bank-option {
             display: flex;
             align-items: center;
@@ -562,7 +563,7 @@ $products = CFI_Products::get_all();
             <!-- Customer Name (Required for Transfer) -->
             <div class="customer-name-group" id="customer-name-group" style="display: block;">
                 <div class="form-group">
-                    <label for="customer_name"><i class="fas fa-user"></i> Customer Name <span style="color: #dc2626;">*</span> (Required for Transfer/Card and Split)</label>
+                    <label for="customer_name"><i class="fas fa-user"></i> Customer Name <span style="color: #dc2626;">*</span> (Required for transfer/card and split payments)</label>
                     <input type="text" id="customer_name" name="customer_name" class="form-input" placeholder="Enter customer name for transfer...">
                 </div>
             </div>
@@ -588,7 +589,7 @@ $products = CFI_Products::get_all();
                     <input type="number" id="cash_amount" name="cash_amount" class="form-input" value="0" min="0" step="0.01" oninput="updatePaymentBalance()">
                 </div>
             </div>
-            <div id="split-payment-note" style="display: none; margin-top: 0.5rem; font-size: 0.75rem; color: #64748b;">
+            <div id="split-payment-note" class="split-payment-note">
                 <i class="fas fa-info-circle"></i> Split payments initialize both amounts to ₦0. Enter the transfer and cash amounts manually.
             </div>
             <div id="payment-balance" style="display: none; padding: 0.75rem; background: #fef3c7; border-radius: 8px; margin-top: 0.5rem; font-size: 0.85rem; color: #92400e;">
