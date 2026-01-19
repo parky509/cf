@@ -1123,14 +1123,16 @@ function clearCustomerNameError() {
 }
 
 var customerNameInput = document.getElementById('customer_name');
-if (customerNameInput && !window.cfiCustomerNameListenerAttached) {
+var customerNameListenerTargets = window.cfiCustomerNameListenerTargets || new WeakSet();
+window.cfiCustomerNameListenerTargets = customerNameListenerTargets;
+if (customerNameInput && !customerNameListenerTargets.has(customerNameInput)) {
     customerNameInput.addEventListener('input', function() {
         if (customerNameInput.value.trim()) {
             clearCustomerNameError();
             customerNameInput.classList.remove('required');
         }
     });
-    window.cfiCustomerNameListenerAttached = true;
+    customerNameListenerTargets.add(customerNameInput);
 }
 
 // Bluetooth thermal printer connection
