@@ -138,6 +138,15 @@ $format_number = function($value) {
     .cfi-analytics-card-actions .cfi-btn {
         font-size: 0.65rem;
         padding: 0.35rem 0.65rem;
+        background: #1d4ed8;
+        border-color: #1d4ed8;
+        color: #ffffff;
+    }
+    .cfi-analytics-card-actions .cfi-btn:hover,
+    .cfi-analytics-card-actions .cfi-btn:focus {
+        background: #1e40af;
+        border-color: #1e40af;
+        color: #ffffff;
     }
     .cfi-analytics-icon {
         width: 36px;
