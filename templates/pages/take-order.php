@@ -28,7 +28,7 @@ if (isset($_POST['cfi_submit_order']) && wp_verify_nonce($_POST['cfi_order_nonce
     
     // Validate customer name for transfer payments
     if (in_array($payment_method, array('transfer', 'split'), true) && empty($customer_name)) {
-        $message = 'Customer name is required for transfer/card payments!';
+        $message = 'Customer name is required for transfer/card and split payments!';
         $message_type = 'error';
     } else {
         $order_items = array();
@@ -587,7 +587,7 @@ $products = CFI_Products::get_all();
                 </div>
             </div>
             <div id="split-payment-note" style="display: none; margin-top: 0.5rem; font-size: 0.75rem; color: #64748b;">
-                <i class="fas fa-info-circle"></i> Split payments start at ₦0. Enter transfer and cash amounts manually.
+                <i class="fas fa-info-circle"></i> Split payments initialize both amounts to ₦0. Enter the transfer and cash amounts manually.
             </div>
             <div id="payment-balance" style="display: none; padding: 0.75rem; background: #fef3c7; border-radius: 8px; margin-top: 0.5rem; font-size: 0.85rem; color: #92400e;">
                 <i class="fas fa-exclamation-triangle"></i> <span id="payment-balance-text"></span>
@@ -886,7 +886,7 @@ function showConfirmation() {
     var customerName = document.getElementById('customer_name').value.trim();
     
     if ((method === 'transfer' || method === 'split') && !customerName) {
-        alert('Customer name is required for transfer/card payments!');
+        alert('Customer name is required for transfer/card and split payments!');
         document.getElementById('customer_name').classList.add('required');
         document.getElementById('customer_name').focus();
         return;
