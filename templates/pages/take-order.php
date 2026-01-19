@@ -27,10 +27,11 @@ if (isset($_POST['cfi_submit_order']) && wp_verify_nonce($_POST['cfi_order_nonce
     $items = isset($_POST['items']) ? $_POST['items'] : array();
     
     $customer_name_methods = array('transfer', 'split');
+    $customer_name_message = 'Customer name is required for transfer/card and split payments!';
 
     // Validate customer name for transfer and split payments
     if (in_array($payment_method, $customer_name_methods, true) && empty($customer_name)) {
-        $message = 'Customer name is required for transfer/card and split payments!';
+        $message = $customer_name_message;
         $message_type = 'error';
     } else {
         $order_items = array();
@@ -563,7 +564,7 @@ $products = CFI_Products::get_all();
             <!-- Customer Name (Required for Transfer) -->
             <div class="customer-name-group" id="customer-name-group" style="display: block;">
                 <div class="form-group">
-                    <label for="customer_name"><i class="fas fa-user"></i> Customer Name <span style="color: #dc2626;">*</span> (Required for transfer/card and split payments)</label>
+                    <label for="customer_name"><i class="fas fa-user"></i> Customer Name <span style="color: #dc2626;">*</span> (<?php echo esc_html($customer_name_message); ?>)</label>
                     <input type="text" id="customer_name" name="customer_name" class="form-input" placeholder="Enter customer name for transfer...">
                 </div>
             </div>
@@ -893,7 +894,7 @@ function showConfirmation() {
     var customerName = document.getElementById('customer_name').value.trim();
     
     if (requiresCustomerName(method) && !customerName) {
-        alert('Customer name is required for transfer/card and split payments!');
+        alert('<?php echo esc_js($customer_name_message); ?>');
         document.getElementById('customer_name').classList.add('required');
         document.getElementById('customer_name').focus();
         return;
