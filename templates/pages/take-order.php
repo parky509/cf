@@ -768,8 +768,9 @@ function clearFormError() {
     }
 }
 
-var paymentTolerance = <?php echo esc_js($payment_tolerance); ?>;
+var paymentTolerance = <?php echo (float) $payment_tolerance; ?>;
 var paymentErrorMessages = <?php echo wp_json_encode($payment_error_messages); ?>;
+var customerNameMessage = <?php echo wp_json_encode($customer_name_message); ?>;
 
 function getPaymentValidationMessage(method, diff) {
     if (Math.abs(diff) <= paymentTolerance) {
@@ -795,6 +796,49 @@ function getPaymentDifference(grandTotal, method) {
         return grandTotal - cashAmt;
     }
     return grandTotal - (transferAmt + cashAmt);
+}
+
+function getOrderTotals() {
+    var rows = document.querySelectorAll('.order-row');
+    var subtotal = 0;
+    var totalDisc = 0;
+
+    rows.forEach(function(row) {
+        var qty = parseFloat(row.querySelector('.qty-input').value) || 0;
+        var disc = parseFloat(row.querySelector('.disc-input').value) || 0;
+        var price = parseFloat(row.dataset.price) || 0;
+        subtotal += (price * qty);
+        totalDisc += disc;
+    });
+
+    return {
+        subtotal: subtotal,
+        totalDisc: totalDisc,
+        grandTotal: subtotal - totalDisc
+    };
+}
+
+function validateOrderPayment(method, customerNameInput, grandTotal) {
+    var customerName = customerNameInput.value.trim();
+
+    if (requiresCustomerName(method) && !customerName) {
+        showFormError(customerNameMessage);
+        customerNameInput.classList.add('required');
+        customerNameInput.focus();
+        return false;
+    }
+
+    customerNameInput.classList.remove('required');
+
+    var paymentDiff = getPaymentDifference(grandTotal, method);
+    var paymentError = getPaymentValidationMessage(method, paymentDiff);
+
+    if (paymentError) {
+        showFormError(paymentError);
+        return false;
+    }
+
+    return true;
 }
 function calculateRow(input) {
     var row = input.closest('.order-row');
@@ -897,15 +941,8 @@ function togglePayment(el) {
 }
 
 function updatePaymentBalance() {
-    var grandTotal = 0;
-    var rows = document.querySelectorAll('.order-row');
-    rows.forEach(function(row) {
-        var qty = parseFloat(row.querySelector('.qty-input').value) || 0;
-        var disc = parseFloat(row.querySelector('.disc-input').value) || 0;
-        var price = parseFloat(row.dataset.price) || 0;
-        grandTotal += (price * qty) - disc;
-    });
-    
+    var totals = getOrderTotals();
+    var grandTotal = totals.grandTotal;
     var method = document.getElementById('payment-method').value;
     var diff = getPaymentDifference(grandTotal, method);
     var message = getPaymentValidationMessage(method, diff);
@@ -932,7 +969,6 @@ function updatePaymentBalance() {
         balanceDiv.style.display = 'none';
     }
 
-    return { grandTotal: grandTotal, diff: diff };
 }
 
 // Show confirmation modal
@@ -972,16 +1008,6 @@ function showConfirmation() {
     
     var method = document.getElementById('payment-method').value;
     var customerNameInput = document.getElementById('customer_name');
-    var customerName = customerNameInput.value.trim();
-    
-    if (requiresCustomerName(method) && !customerName) {
-        showFormError('<?php echo esc_js($customer_name_message); ?>');
-        customerNameInput.classList.add('required');
-        customerNameInput.focus();
-        return;
-    }
-
-    customerNameInput.classList.remove('required');
     
     // Build items list for confirmation
     var rows = document.querySelectorAll('.order-row');
@@ -1013,11 +1039,7 @@ function showConfirmation() {
     }
     
     var grandTotal = subtotal - totalDisc;
-    var paymentDiff = getPaymentDifference(grandTotal, method);
-    var paymentError = getPaymentValidationMessage(method, paymentDiff);
-
-    if (paymentError) {
-        showFormError(paymentError);
+    if (!validateOrderPayment(method, customerNameInput, grandTotal)) {
         return;
     }
     
@@ -1032,6 +1054,7 @@ function showConfirmation() {
     document.getElementById('confirm-totals').innerHTML = totalsHtml;
     
     var paymentInfo = 'Payment: ' + method.charAt(0).toUpperCase() + method.slice(1);
+    var customerName = customerNameInput.value.trim();
     if (customerName) {
         paymentInfo += ' | Customer: ' + customerName;
     }
@@ -1048,25 +1071,11 @@ function submitOrder() {
     clearFormError();
     var method = document.getElementById('payment-method').value;
     var customerNameInput = document.getElementById('customer_name');
-    var customerName = customerNameInput.value.trim();
-    var paymentTotals = updatePaymentBalance();
-    var paymentError = getPaymentValidationMessage(method, paymentTotals.diff);
-
-    if (paymentError) {
+    var totals = getOrderTotals();
+    if (!validateOrderPayment(method, customerNameInput, totals.grandTotal)) {
         hideConfirmation();
-        showFormError(paymentError);
         return;
     }
-
-    if (requiresCustomerName(method) && !customerName) {
-        hideConfirmation();
-        showFormError('<?php echo esc_js($customer_name_message); ?>');
-        customerNameInput.classList.add('required');
-        customerNameInput.focus();
-        return;
-    }
-
-    customerNameInput.classList.remove('required');
     hideConfirmation();
     // Add hidden submit button and trigger form submission
     var form = document.getElementById('order-form');
