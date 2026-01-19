@@ -124,11 +124,12 @@ if (CFI_Auth::is_cfi_admin()) {
 
 // Build URLs for each card
 foreach ($cards as &$card) {
+    $page_prefix = 'cfi-';
     $page = get_page_by_path($card['slug']);
-    if (!$page && strpos($card['slug'], 'cfi-') === 0) {
-        $page = get_page_by_path(substr($card['slug'], 4));
+    if (!$page && strpos($card['slug'], $page_prefix) === 0) {
+        $page = get_page_by_path(substr($card['slug'], strlen($page_prefix)));
     } elseif (!$page) {
-        $page = get_page_by_path('cfi-' . $card['slug']);
+        $page = get_page_by_path($page_prefix . $card['slug']);
     }
     if ($page) {
         $card['url'] = get_permalink($page->ID);
