@@ -112,15 +112,29 @@ $cards = array(
     ),
 );
 
+if (!defined('CFI_PAGE_PREFIX')) {
+    define('CFI_PAGE_PREFIX', 'cfi-');
+}
 // Prefix used for CFI page slugs.
-$page_prefix = 'cfi-';
+$page_prefix = CFI_PAGE_PREFIX;
 
 function cfi_resolve_page_by_slug($slug, $prefix) {
     $page = get_page_by_path($slug);
-    if (!$page && substr($slug, 0, strlen($prefix)) === $prefix) {
-        $page = get_page_by_path(substr($slug, strlen($prefix)));
-    } elseif (!$page) {
-        $page = get_page_by_path($prefix . $slug);
+    if ($page) {
+        return $page;
+    }
+    $has_prefix = substr($slug, 0, strlen($prefix)) === $prefix;
+    if ($has_prefix) {
+        $trimmed = substr($slug, strlen($prefix));
+        $page = get_page_by_path($trimmed);
+        if (!$page) {
+            $page = get_page_by_path($prefix . $trimmed);
+        }
+        return $page;
+    }
+    $page = get_page_by_path($prefix . $slug);
+    if (!$page) {
+        $page = get_page_by_path($slug);
     }
     return $page;
 }
