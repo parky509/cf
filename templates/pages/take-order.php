@@ -274,9 +274,23 @@ $products = CFI_Products::get_all();
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            flex-wrap: wrap;
+            font-size: 0.85rem;
+            line-height: 1.4;
         }
         .alert-success { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
         .alert-error { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+        #order-form-error {
+            align-items: flex-start;
+        }
+        #order-form-error-text {
+            display: inline-block;
+            color: inherit;
+            font-weight: 600;
+            flex: 1;
+            min-width: 0;
+            word-break: break-word;
+        }
         
         .glass {
             background: white;
@@ -513,7 +527,7 @@ $products = CFI_Products::get_all();
     </div>
     <?php endif; ?>
 
-    <div id="order-form-error" class="alert alert-error" style="display: none;">
+    <div id="order-form-error" class="alert alert-error" style="display: none;" role="alert" aria-live="assertive">
         <i class="fas fa-exclamation-circle"></i>
         <span id="order-form-error-text"></span>
     </div>
@@ -764,14 +778,21 @@ function showFormError(message) {
         return;
     }
     errorText.textContent = message;
+    errorText.style.display = 'inline-block';
+    errorText.style.visibility = 'visible';
     errorBox.style.display = 'flex';
     errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 function clearFormError() {
     var errorBox = document.getElementById('order-form-error');
+    var errorText = document.getElementById('order-form-error-text');
     if (errorBox) {
         errorBox.style.display = 'none';
+    }
+    if (errorText) {
+        errorText.textContent = '';
+        errorText.style.display = 'none';
     }
     clearCustomerNameError();
 }
