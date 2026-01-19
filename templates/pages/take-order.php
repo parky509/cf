@@ -25,14 +25,14 @@ if (isset($_POST['cfi_submit_order']) && wp_verify_nonce($_POST['cfi_order_nonce
     global $wpdb;
     
     $payment_method = sanitize_text_field($_POST['payment_method']);
-    $customer_name = sanitize_text_field($_POST['customer_name']);
+    $customer_name = sanitize_text_field($_POST['customer_name'] ?? '');
     $transfer_amount = floatval($_POST['transfer_amount']);
     $cash_amount = floatval($_POST['cash_amount']);
     $bank_name = sanitize_text_field($_POST['bank_name']);
     $items = isset($_POST['items']) ? $_POST['items'] : array();
     
     $customer_name_methods = array('transfer', 'split');
-    $customer_name_message = 'Customer name is required for transfer-only or split payments!';
+    $customer_name_message = 'Customer name is required for transfer-only or transfer + cash payments.';
 
     // Validate customer name for transfer and split payments
     if (in_array($payment_method, $customer_name_methods, true) && empty($customer_name)) {
@@ -300,6 +300,12 @@ $products = CFI_Products::get_all();
         }
         .form-input:focus { outline: none; border-color: #001943; }
         .form-input.required { border-color: #dc2626; }
+        .form-error-text {
+            margin-top: 0.5rem;
+            color: #991b1b;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
         
         .table-wrapper { overflow-x: auto; margin: 0 -0.5rem; }
         .order-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 600px; }
@@ -593,6 +599,7 @@ $products = CFI_Products::get_all();
                 <div class="form-group">
                     <label for="customer_name"><i class="fas fa-user"></i> Customer Name <span style="color: #dc2626;">*</span> (<?php echo esc_html($customer_name_message); ?>)</label>
                     <input type="text" id="customer_name" name="customer_name" class="form-input" placeholder="Enter customer name for transfer...">
+                    <div class="form-error-text" id="customer-name-error" style="display: none;"></div>
                 </div>
             </div>
             
@@ -766,6 +773,7 @@ function clearFormError() {
     if (errorBox) {
         errorBox.style.display = 'none';
     }
+    clearCustomerNameError();
 }
 
 var paymentTolerance = <?php echo (float) $payment_tolerance; ?>;
@@ -823,11 +831,13 @@ function validateOrderPayment(method, customerNameInput, grandTotal) {
 
     if (requiresCustomerName(method) && !customerName) {
         showFormError(customerNameMessage);
+        showCustomerNameError(customerNameMessage);
         customerNameInput.classList.add('required');
         customerNameInput.focus();
         return false;
     }
 
+    clearCustomerNameError();
     customerNameInput.classList.remove('required');
 
     var paymentDiff = getPaymentDifference(grandTotal, method);
@@ -925,6 +935,13 @@ function togglePayment(el) {
         document.getElementById('payment-method').value = 'transfer';
     } else {
         document.getElementById('payment-method').value = 'cash';
+    }
+    if (!requiresCustomerName(document.getElementById('payment-method').value)) {
+        clearCustomerNameError();
+        var customerNameInput = document.getElementById('customer_name');
+        if (customerNameInput) {
+            customerNameInput.classList.remove('required');
+        }
     }
 
     var splitNote = document.getElementById('split-payment-note');
@@ -1085,6 +1102,34 @@ function submitOrder() {
     submitBtn.value = '1';
     form.appendChild(submitBtn);
     form.submit();
+}
+
+function showCustomerNameError(message) {
+    var customerNameError = document.getElementById('customer-name-error');
+    if (!customerNameError) {
+        return;
+    }
+    customerNameError.textContent = message;
+    customerNameError.style.display = 'block';
+}
+
+function clearCustomerNameError() {
+    var customerNameError = document.getElementById('customer-name-error');
+    if (!customerNameError) {
+        return;
+    }
+    customerNameError.textContent = '';
+    customerNameError.style.display = 'none';
+}
+
+var customerNameInput = document.getElementById('customer_name');
+if (customerNameInput) {
+    customerNameInput.addEventListener('input', function() {
+        if (customerNameInput.value.trim()) {
+            clearCustomerNameError();
+            customerNameInput.classList.remove('required');
+        }
+    });
 }
 
 // Bluetooth thermal printer connection
