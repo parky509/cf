@@ -143,7 +143,6 @@ function cfi_resolve_page_by_slug($slug, $prefix) {
 
 if (CFI_Auth::is_cfi_admin()) {
     $cards[] = array(
-        'slug' => 'analytics',
         'url' => home_url('/analytics/'),
         'title' => 'Analytics Overview',
         'icon' => 'fas fa-chart-line',
@@ -152,7 +151,7 @@ if (CFI_Auth::is_cfi_admin()) {
     );
 }
 
-// Build URLs for each card, allowing custom URLs when provided.
+// Build URLs for each card, using custom URLs when provided.
 foreach ($cards as &$card) {
     if (empty($card['url']) && !empty($card['slug'])) {
         $page = cfi_resolve_page_by_slug($card['slug'], $page_prefix);
