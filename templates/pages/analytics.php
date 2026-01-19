@@ -116,6 +116,13 @@ $format_number = function($value) {
         margin-bottom: 0.5rem;
         font-size: 0.9rem;
     }
+    .cfi-analytics-icon i,
+    .cfi-analytics-header i,
+    .cfi-analytics-section h3 i,
+    .cfi-analytics-loading i {
+        font-family: "Font Awesome 6 Free";
+        font-weight: 900;
+    }
     .cfi-analytics-value {
         font-size: 1.15rem;
         font-weight: 700;
@@ -357,6 +364,16 @@ $format_number = function($value) {
             $('#cfi-analytics-range-label').text(range.label || '');
             if (range.start_display && range.end_display) {
                 $('#cfi-analytics-range-dates').text(range.start_display + ' - ' + range.end_display);
+            } else if (range.start_display) {
+                $('#cfi-analytics-range-dates').text(range.start_display);
+            } else if (range.end_display) {
+                $('#cfi-analytics-range-dates').text(range.end_display);
+            }
+            if (range.start_date) {
+                $startInput.val(range.start_date);
+            }
+            if (range.end_date) {
+                $endInput.val(range.end_date);
             }
 
             $('[data-analytics]').each(function() {
