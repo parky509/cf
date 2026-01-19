@@ -118,6 +118,13 @@ if (!defined('CFI_PAGE_PREFIX')) {
 // Prefix used for CFI page slugs.
 $page_prefix = CFI_PAGE_PREFIX;
 
+/**
+ * Resolve a page by slug with optional CFI prefix handling.
+ *
+ * @param string $slug
+ * @param string $prefix
+ * @return WP_Post|null
+ */
 function cfi_resolve_page_by_slug($slug, $prefix) {
     $page = get_page_by_path($slug);
     if ($page) {
@@ -126,17 +133,9 @@ function cfi_resolve_page_by_slug($slug, $prefix) {
     $has_prefix = substr($slug, 0, strlen($prefix)) === $prefix;
     if ($has_prefix) {
         $trimmed = substr($slug, strlen($prefix));
-        $page = get_page_by_path($trimmed);
-        if (!$page) {
-            $page = get_page_by_path($prefix . $trimmed);
-        }
-        return $page;
+        return get_page_by_path($trimmed);
     }
-    $page = get_page_by_path($prefix . $slug);
-    if (!$page) {
-        $page = get_page_by_path($slug);
-    }
-    return $page;
+    return get_page_by_path($prefix . $slug);
 }
 
 if (CFI_Auth::is_cfi_admin()) {
