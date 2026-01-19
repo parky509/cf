@@ -27,7 +27,7 @@ if (isset($_POST['cfi_submit_order']) && wp_verify_nonce($_POST['cfi_order_nonce
     $items = isset($_POST['items']) ? $_POST['items'] : array();
     
     $customer_name_methods = array('transfer', 'split');
-    $customer_name_message = 'Customer name is required for transfer/card and split payments!';
+    $customer_name_message = 'Customer name is required for transfer-only or split payments!';
 
     // Validate customer name for transfer and split payments
     if (in_array($payment_method, $customer_name_methods, true) && empty($customer_name)) {
@@ -69,109 +69,128 @@ if (isset($_POST['cfi_submit_order']) && wp_verify_nonce($_POST['cfi_order_nonce
         } else {
             $grand_total = $total_amount - $total_discount;
             $order_number = 'ORD-' . gmdate('Ymd') . '-' . substr(uniqid(), -6);
-            
-            // Insert order
-            $orders_table = $wpdb->prefix . 'cfi_orders';
-            $result = $wpdb->insert(
-                $orders_table,
-                array(
-                    'order_number' => $order_number,
-                    'order_type' => 'cash',
-                    'customer_name' => $customer_name,
-                    'total_quantity' => $total_qty,
-                    'total_amount' => $total_amount,
-                    'discount_amount' => $total_discount,
-                    'grand_total' => $grand_total,
-                    'payment_method' => $payment_method,
-                    'transfer_amount' => $transfer_amount,
-                    'cash_amount' => $cash_amount,
-                    'bank_name' => $bank_name,
-                    'staff_id' => get_current_user_id(),
-                    'order_date' => current_time('Y-m-d'),
-                    'order_time' => current_time('H:i:s'),
-                    'status' => 'completed'
-                ),
-                array('%s', '%s', '%s', '%f', '%f', '%f', '%f', '%s', '%f', '%f', '%s', '%d', '%s', '%s', '%s')
-            );
-            
-            if ($result) {
-                $order_id = $wpdb->insert_id;
-                
-                // Insert order items
-                $items_table = $wpdb->prefix . 'cfi_order_items';
-                foreach ($order_items as $item) {
-                    $wpdb->insert(
-                        $items_table,
-                        array(
-                            'order_id' => $order_id,
-                            'product_id' => $item['product_id'],
-                            'quantity' => $item['quantity'],
-                            'price' => $item['price'],
-                            'discount' => $item['discount'],
-                            'total' => $item['total']
-                        ),
-                        array('%d', '%d', '%f', '%f', '%f', '%f')
-                    );
-                    
-                    // Update stock cash_supply column for this product
-                    CFI_Stock::update_cash_supply($item['product_id'], $item['quantity'], current_time('Y-m-d'));
+            $payment_error = '';
+            $payment_tolerance = 0.01;
+
+            if ($payment_method === 'transfer') {
+                $payment_diff = $grand_total - $transfer_amount;
+                if (abs($payment_diff) > $payment_tolerance) {
+                    $payment_error = 'Transfer amount must match the grand total for transfer-only payments.';
                 }
-                
-                // Record transfer if applicable
-                if ($transfer_amount > 0) {
-                    $transfer_table = $wpdb->prefix . 'cfi_transfer_history';
-                    $wpdb->insert(
-                        $transfer_table,
-                        array(
-                            'source' => 'order',
-                            'source_id' => $order_id,
-                            'customer_name' => $customer_name,
-                            'amount' => $transfer_amount,
-                            'bank_name' => $bank_name,
-                            'staff_id' => get_current_user_id(),
-                            'transfer_date' => current_time('Y-m-d'),
-                            'transfer_time' => current_time('H:i:s')
-                        ),
-                        array('%s', '%d', '%s', '%f', '%s', '%d', '%s', '%s')
-                    );
+            } elseif ($payment_method === 'split') {
+                $payment_diff = $grand_total - ($transfer_amount + $cash_amount);
+                if (abs($payment_diff) > $payment_tolerance) {
+                    $payment_error = 'Split payments require the transfer and cash amounts to equal the grand total.';
                 }
-                
-                // Update financial summary
-                CFI_Financial::update_daily_summary(current_time('Y-m-d'));
-                
-                // Prepare receipt data and store in transient for PRG pattern
-                $receipt_data = array(
-                    'order_number' => $order_number,
-                    'date' => current_time('d/m/Y'),
-                    'time' => current_time('g:i A'),
-                    'customer_name' => $customer_name,
-                    'items' => $order_items,
-                    'total_qty' => $total_qty,
-                    'subtotal' => $total_amount,
-                    'discount' => $total_discount,
-                    'grand_total' => $grand_total,
-                    'payment_method' => $payment_method,
-                    'transfer_amount' => $transfer_amount,
-                    'cash_amount' => $cash_amount,
-                    'bank_name' => $bank_name,
-                    'staff' => wp_get_current_user()->display_name
+            }
+
+            if ($payment_error) {
+                $message = $payment_error;
+                $message_type = 'error';
+            } else {
+                // Insert order
+                $orders_table = $wpdb->prefix . 'cfi_orders';
+                $result = $wpdb->insert(
+                    $orders_table,
+                    array(
+                        'order_number' => $order_number,
+                        'order_type' => 'cash',
+                        'customer_name' => $customer_name,
+                        'total_quantity' => $total_qty,
+                        'total_amount' => $total_amount,
+                        'discount_amount' => $total_discount,
+                        'grand_total' => $grand_total,
+                        'payment_method' => $payment_method,
+                        'transfer_amount' => $transfer_amount,
+                        'cash_amount' => $cash_amount,
+                        'bank_name' => $bank_name,
+                        'staff_id' => get_current_user_id(),
+                        'order_date' => current_time('Y-m-d'),
+                        'order_time' => current_time('H:i:s'),
+                        'status' => 'completed'
+                    ),
+                    array('%s', '%s', '%s', '%f', '%f', '%f', '%f', '%s', '%f', '%f', '%s', '%d', '%s', '%s', '%s')
                 );
                 
-                // Store receipt in transient (expires in 5 minutes) for PRG pattern
-                $receipt_key = 'cfi_order_receipt_' . get_current_user_id() . '_' . time();
-                set_transient($receipt_key, $receipt_data, 5 * MINUTE_IN_SECONDS);
-                
-                // Redirect to same page with receipt key to prevent form resubmission
-                $redirect_url = add_query_arg(array(
-                    'order_success' => '1',
-                    'receipt_key' => $receipt_key
-                ), strtok($_SERVER['REQUEST_URI'], '?'));
-                
-                wp_redirect($redirect_url);
-                exit;
-            } else {
-                $message = 'Failed to save order. Please try again.';
-                $message_type = 'error';
+                if ($result) {
+                    $order_id = $wpdb->insert_id;
+                    
+                    // Insert order items
+                    $items_table = $wpdb->prefix . 'cfi_order_items';
+                    foreach ($order_items as $item) {
+                        $wpdb->insert(
+                            $items_table,
+                            array(
+                                'order_id' => $order_id,
+                                'product_id' => $item['product_id'],
+                                'quantity' => $item['quantity'],
+                                'price' => $item['price'],
+                                'discount' => $item['discount'],
+                                'total' => $item['total']
+                            ),
+                            array('%d', '%d', '%f', '%f', '%f', '%f')
+                        );
+                        
+                        // Update stock cash_supply column for this product
+                        CFI_Stock::update_cash_supply($item['product_id'], $item['quantity'], current_time('Y-m-d'));
+                    }
+                    
+                    // Record transfer if applicable
+                    if ($transfer_amount > 0) {
+                        $transfer_table = $wpdb->prefix . 'cfi_transfer_history';
+                        $wpdb->insert(
+                            $transfer_table,
+                            array(
+                                'source' => 'order',
+                                'source_id' => $order_id,
+                                'customer_name' => $customer_name,
+                                'amount' => $transfer_amount,
+                                'bank_name' => $bank_name,
+                                'staff_id' => get_current_user_id(),
+                                'transfer_date' => current_time('Y-m-d'),
+                                'transfer_time' => current_time('H:i:s')
+                            ),
+                            array('%s', '%d', '%s', '%f', '%s', '%d', '%s', '%s')
+                        );
+                    }
+                    
+                    // Update financial summary
+                    CFI_Financial::update_daily_summary(current_time('Y-m-d'));
+                    
+                    // Prepare receipt data and store in transient for PRG pattern
+                    $receipt_data = array(
+                        'order_number' => $order_number,
+                        'date' => current_time('d/m/Y'),
+                        'time' => current_time('g:i A'),
+                        'customer_name' => $customer_name,
+                        'items' => $order_items,
+                        'total_qty' => $total_qty,
+                        'subtotal' => $total_amount,
+                        'discount' => $total_discount,
+                        'grand_total' => $grand_total,
+                        'payment_method' => $payment_method,
+                        'transfer_amount' => $transfer_amount,
+                        'cash_amount' => $cash_amount,
+                        'bank_name' => $bank_name,
+                        'staff' => wp_get_current_user()->display_name
+                    );
+                    
+                    // Store receipt in transient (expires in 5 minutes) for PRG pattern
+                    $receipt_key = 'cfi_order_receipt_' . get_current_user_id() . '_' . time();
+                    set_transient($receipt_key, $receipt_data, 5 * MINUTE_IN_SECONDS);
+                    
+                    // Redirect to same page with receipt key to prevent form resubmission
+                    $redirect_url = add_query_arg(array(
+                        'order_success' => '1',
+                        'receipt_key' => $receipt_key
+                    ), strtok($_SERVER['REQUEST_URI'], '?'));
+                    
+                    wp_redirect($redirect_url);
+                    exit;
+                } else {
+                    $message = 'Failed to save order. Please try again.';
+                    $message_type = 'error';
+                }
             }
         }
     }
@@ -484,6 +503,11 @@ $products = CFI_Products::get_all();
         <?php echo esc_html($message); ?>
     </div>
     <?php endif; ?>
+
+    <div id="order-form-error" class="alert alert-error" style="display: none;">
+        <i class="fas fa-exclamation-circle"></i>
+        <span id="order-form-error-text"></span>
+    </div>
     
     <form method="POST" id="order-form">
         <?php wp_nonce_field('cfi_take_order', 'cfi_order_nonce'); ?>
@@ -722,6 +746,38 @@ $products = CFI_Products::get_all();
 <?php endif; ?>
 
 <script>
+function showFormError(message) {
+    var errorBox = document.getElementById('order-form-error');
+    var errorText = document.getElementById('order-form-error-text');
+    if (!errorBox || !errorText) {
+        alert(message);
+        return;
+    }
+    errorText.textContent = message;
+    errorBox.style.display = 'flex';
+    errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function clearFormError() {
+    var errorBox = document.getElementById('order-form-error');
+    if (errorBox) {
+        errorBox.style.display = 'none';
+    }
+}
+
+function getPaymentValidationMessage(method, diff) {
+    if (Math.abs(diff) <= 0.01) {
+        return '';
+    }
+    var amount = Math.abs(diff).toLocaleString();
+    if (method === 'split') {
+        return 'Split payments require the transfer and cash amounts to equal the grand total. Difference: ₦' + amount + '.';
+    }
+    if (method === 'transfer') {
+        return 'Transfer amount must match the grand total for transfer-only payments. Difference: ₦' + amount + '.';
+    }
+    return '';
+}
 function calculateRow(input) {
     var row = input.closest('.order-row');
     var price = parseFloat(row.dataset.price) || 0;
@@ -836,28 +892,37 @@ function updatePaymentBalance() {
     var cashAmt = parseFloat(document.getElementById('cash_amount').value) || 0;
     var totalPayment = transferAmt + cashAmt;
     var diff = grandTotal - totalPayment;
+    var method = document.getElementById('payment-method').value;
+    var message = getPaymentValidationMessage(method, diff);
     
     var balanceDiv = document.getElementById('payment-balance');
     var balanceText = document.getElementById('payment-balance-text');
     
     if (Math.abs(diff) > 0.01 && grandTotal > 0) {
         balanceDiv.style.display = 'block';
+        if (!message) {
+            message = diff > 0
+                ? 'Payment is ₦' + diff.toLocaleString() + ' short of grand total'
+                : 'Payment exceeds grand total by ₦' + Math.abs(diff).toLocaleString();
+        }
+        balanceText.textContent = message;
         if (diff > 0) {
-            balanceText.textContent = 'Payment is ₦' + diff.toLocaleString() + ' short of grand total';
             balanceDiv.style.background = '#fee2e2';
             balanceDiv.style.color = '#991b1b';
         } else {
-            balanceText.textContent = 'Payment exceeds grand total by ₦' + Math.abs(diff).toLocaleString();
             balanceDiv.style.background = '#fef3c7';
             balanceDiv.style.color = '#92400e';
         }
     } else {
         balanceDiv.style.display = 'none';
     }
+
+    return { grandTotal: grandTotal, diff: diff };
 }
 
 // Show confirmation modal
 function showConfirmation() {
+    clearFormError();
     // Check for negative values first
     var hasNegatives = false;
     var negativeFields = [];
@@ -891,14 +956,17 @@ function showConfirmation() {
     }
     
     var method = document.getElementById('payment-method').value;
-    var customerName = document.getElementById('customer_name').value.trim();
+    var customerNameInput = document.getElementById('customer_name');
+    var customerName = customerNameInput.value.trim();
     
     if (requiresCustomerName(method) && !customerName) {
-        alert('<?php echo esc_js($customer_name_message); ?>');
-        document.getElementById('customer_name').classList.add('required');
-        document.getElementById('customer_name').focus();
+        showFormError('<?php echo esc_js($customer_name_message); ?>');
+        customerNameInput.classList.add('required');
+        customerNameInput.focus();
         return;
     }
+
+    customerNameInput.classList.remove('required');
     
     // Build items list for confirmation
     var rows = document.querySelectorAll('.order-row');
@@ -930,6 +998,13 @@ function showConfirmation() {
     }
     
     var grandTotal = subtotal - totalDisc;
+    var paymentDiff = grandTotal - ((parseFloat(document.getElementById('transfer_amount').value) || 0) + (parseFloat(document.getElementById('cash_amount').value) || 0));
+    var paymentError = getPaymentValidationMessage(method, paymentDiff);
+
+    if (paymentError) {
+        showFormError(paymentError);
+        return;
+    }
     
     document.getElementById('confirm-items-list').innerHTML = itemsHtml;
     
@@ -955,6 +1030,28 @@ function hideConfirmation() {
 }
 
 function submitOrder() {
+    clearFormError();
+    var method = document.getElementById('payment-method').value;
+    var customerNameInput = document.getElementById('customer_name');
+    var customerName = customerNameInput.value.trim();
+    var paymentTotals = updatePaymentBalance();
+    var paymentError = getPaymentValidationMessage(method, paymentTotals.diff);
+
+    if (paymentError) {
+        hideConfirmation();
+        showFormError(paymentError);
+        return;
+    }
+
+    if (requiresCustomerName(method) && !customerName) {
+        hideConfirmation();
+        showFormError('<?php echo esc_js($customer_name_message); ?>');
+        customerNameInput.classList.add('required');
+        customerNameInput.focus();
+        return;
+    }
+
+    customerNameInput.classList.remove('required');
     hideConfirmation();
     // Add hidden submit button and trigger form submission
     var form = document.getElementById('order-form');
