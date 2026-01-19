@@ -143,7 +143,6 @@ function cfi_resolve_page_by_slug($slug, $prefix) {
 
 if (CFI_Auth::is_cfi_admin()) {
     $cards[] = array(
-        'slug' => 'analytics',
         'url' => home_url('/analytics/'),
         'title' => 'Analytics Overview',
         'icon' => 'fas fa-chart-line',
@@ -154,14 +153,13 @@ if (CFI_Auth::is_cfi_admin()) {
 
 // Build URLs for each card
 foreach ($cards as &$card) {
-    if (!empty($card['url'])) {
-        continue;
-    }
-    $page = cfi_resolve_page_by_slug($card['slug'], $page_prefix);
-    if ($page) {
-        $card['url'] = get_permalink($page->ID);
-    } else {
-        $card['url'] = home_url('/' . $card['slug'] . '/');
+    if (empty($card['url'])) {
+        $page = cfi_resolve_page_by_slug($card['slug'], $page_prefix);
+        if ($page) {
+            $card['url'] = get_permalink($page->ID);
+        } else {
+            $card['url'] = home_url('/' . $card['slug'] . '/');
+        }
     }
 }
 unset($card);
