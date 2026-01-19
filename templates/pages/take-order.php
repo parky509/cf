@@ -280,9 +280,6 @@ $products = CFI_Products::get_all();
         }
         .alert-success { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
         .alert-error { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
-        #order-form-error {
-            align-items: flex-start;
-        }
         #order-form-error-text {
             display: inline-block;
             color: inherit;
@@ -779,7 +776,6 @@ function showFormError(message) {
     }
     errorText.textContent = message;
     errorText.style.display = 'inline-block';
-    errorText.style.visibility = 'visible';
     errorBox.style.display = 'flex';
     errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
