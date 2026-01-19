@@ -19,6 +19,8 @@ $payment_error_messages = array(
     'transfer' => 'Transfer amount must match the grand total for transfer-only payments.',
     'split' => 'Split payments require the transfer and cash amounts to equal the grand total.'
 );
+$customer_name_methods = array('transfer', 'split');
+$customer_name_message = 'Customer name is required for transfer or split payments.';
 
 // Process order submission
 if (isset($_POST['cfi_submit_order']) && wp_verify_nonce($_POST['cfi_order_nonce'], 'cfi_take_order')) {
@@ -31,9 +33,6 @@ if (isset($_POST['cfi_submit_order']) && wp_verify_nonce($_POST['cfi_order_nonce
     $bank_name = sanitize_text_field($_POST['bank_name']);
     $items = isset($_POST['items']) ? $_POST['items'] : array();
     
-    $customer_name_methods = array('transfer', 'split');
-    $customer_name_message = 'Customer name is required for transfer or split payments.';
-
     // Validate customer name for transfer and split payments
     if (in_array($payment_method, $customer_name_methods, true) && empty($customer_name)) {
         $message = $customer_name_message;
