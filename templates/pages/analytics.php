@@ -183,9 +183,9 @@ $format_number = function($value) {
                 </div>
             </div>
             <div class="cfi-filter-group">
-                <label>&nbsp;</label>
+                <label for="cfi-analytics-apply"><?php esc_html_e('Filter Actions', 'chinemerem-foods'); ?></label>
                 <button type="button" id="cfi-analytics-apply" class="cfi-btn cfi-btn-primary">
-                    <?php esc_html_e('Apply Dates', 'chinemerem-foods'); ?>
+                    <?php esc_html_e('Apply Date Filters', 'chinemerem-foods'); ?>
                 </button>
             </div>
             <div class="cfi-analytics-range">
@@ -201,7 +201,7 @@ $format_number = function($value) {
             <h3><i class="fas fa-shopping-cart" style="color: #16a34a;"></i> <?php esc_html_e('Order Performance', 'chinemerem-foods'); ?></h3>
             <div class="cfi-analytics-grid">
                 <div class="cfi-analytics-card">
-                    <div class="cfi-analytics-icon" data-icon="🧾"><i class="fas fa-receipt"></i></div>
+                    <div class="cfi-analytics-icon" data-icon="📊"><i class="fas fa-receipt"></i></div>
                     <div class="cfi-analytics-value" data-analytics="orders.total_orders" data-format="number"><?php echo esc_html($format_number($summary['orders']['total_orders'] ?? 0)); ?></div>
                     <div class="cfi-analytics-label"><?php esc_html_e('Total Orders', 'chinemerem-foods'); ?></div>
                 </div>
@@ -237,27 +237,27 @@ $format_number = function($value) {
             <h3><i class="fas fa-user-clock" style="color: #f59e0b;"></i> <?php esc_html_e('Debtors Performance', 'chinemerem-foods'); ?></h3>
             <div class="cfi-analytics-grid">
                 <div class="cfi-analytics-card">
-                    <div class="cfi-analytics-icon" data-icon="🧾"><i class="fas fa-file-invoice-dollar"></i></div>
+                    <div class="cfi-analytics-icon" data-icon="📄"><i class="fas fa-file-invoice-dollar"></i></div>
                     <div class="cfi-analytics-value" data-analytics="debtors.orders_total" data-format="currency"><?php echo esc_html($format_currency($summary['debtors']['orders_total'] ?? 0)); ?></div>
                     <div class="cfi-analytics-label"><?php esc_html_e('Debtor Orders Value', 'chinemerem-foods'); ?></div>
                 </div>
                 <div class="cfi-analytics-card">
-                    <div class="cfi-analytics-icon" data-icon="📋"><i class="fas fa-list-check"></i></div>
+                    <div class="cfi-analytics-icon" data-icon="🧮"><i class="fas fa-list-check"></i></div>
                     <div class="cfi-analytics-value" data-analytics="debtors.orders_count" data-format="number"><?php echo esc_html($format_number($summary['debtors']['orders_count'] ?? 0)); ?></div>
                     <div class="cfi-analytics-label"><?php esc_html_e('Debtor Orders Count', 'chinemerem-foods'); ?></div>
                 </div>
                 <div class="cfi-analytics-card">
-                    <div class="cfi-analytics-icon" data-icon="💰"><i class="fas fa-hand-holding-usd"></i></div>
+                    <div class="cfi-analytics-icon" data-icon="🤝"><i class="fas fa-hand-holding-usd"></i></div>
                     <div class="cfi-analytics-value" data-analytics="debtors.payments_total" data-format="currency"><?php echo esc_html($format_currency($summary['debtors']['payments_total'] ?? 0)); ?></div>
                     <div class="cfi-analytics-label"><?php esc_html_e('Payments Received', 'chinemerem-foods'); ?></div>
                 </div>
                 <div class="cfi-analytics-card">
-                    <div class="cfi-analytics-icon" data-icon="💵"><i class="fas fa-money-bill-wave"></i></div>
+                    <div class="cfi-analytics-icon" data-icon="🪙"><i class="fas fa-money-bill-wave"></i></div>
                     <div class="cfi-analytics-value" data-analytics="debtors.payments_cash" data-format="currency"><?php echo esc_html($format_currency($summary['debtors']['payments_cash'] ?? 0)); ?></div>
                     <div class="cfi-analytics-label"><?php esc_html_e('Payments Cash', 'chinemerem-foods'); ?></div>
                 </div>
                 <div class="cfi-analytics-card">
-                    <div class="cfi-analytics-icon" data-icon="🏦"><i class="fas fa-university"></i></div>
+                    <div class="cfi-analytics-icon" data-icon="🔄"><i class="fas fa-university"></i></div>
                     <div class="cfi-analytics-value" data-analytics="debtors.payments_transfer" data-format="currency"><?php echo esc_html($format_currency($summary['debtors']['payments_transfer'] ?? 0)); ?></div>
                     <div class="cfi-analytics-label"><?php esc_html_e('Payments Transfer', 'chinemerem-foods'); ?></div>
                 </div>
@@ -278,7 +278,7 @@ $format_number = function($value) {
                     <div class="cfi-analytics-label"><?php esc_html_e('Total Expenses', 'chinemerem-foods'); ?></div>
                 </div>
                 <div class="cfi-analytics-card">
-                    <div class="cfi-analytics-icon" data-icon="📋"><i class="fas fa-list"></i></div>
+                    <div class="cfi-analytics-icon" data-icon="📑"><i class="fas fa-list"></i></div>
                     <div class="cfi-analytics-value" data-analytics="expenses.total_count" data-format="number"><?php echo esc_html($format_number($summary['expenses']['total_count'] ?? 0)); ?></div>
                     <div class="cfi-analytics-label"><?php esc_html_e('Expense Entries', 'chinemerem-foods'); ?></div>
                 </div>
@@ -304,12 +304,12 @@ $format_number = function($value) {
                     <div class="cfi-analytics-label"><?php esc_html_e('Debtor Transfers', 'chinemerem-foods'); ?></div>
                 </div>
                 <div class="cfi-analytics-card">
-                    <div class="cfi-analytics-icon" data-icon="🐖"><i class="fas fa-piggy-bank"></i></div>
+                    <div class="cfi-analytics-icon" data-icon="💸"><i class="fas fa-piggy-bank"></i></div>
                     <div class="cfi-analytics-value" data-analytics="transfers.cashout_amount" data-format="currency"><?php echo esc_html($format_currency($summary['transfers']['cashout_amount'] ?? 0)); ?></div>
                     <div class="cfi-analytics-label"><?php esc_html_e('Cash Out Transfers', 'chinemerem-foods'); ?></div>
                 </div>
                 <div class="cfi-analytics-card">
-                    <div class="cfi-analytics-icon" data-icon="✅"><i class="fas fa-clipboard-check"></i></div>
+                    <div class="cfi-analytics-icon" data-icon="🔢"><i class="fas fa-clipboard-check"></i></div>
                     <div class="cfi-analytics-value" data-analytics="transfers.total_count" data-format="number"><?php echo esc_html($format_number($summary['transfers']['total_count'] ?? 0)); ?></div>
                     <div class="cfi-analytics-label"><?php esc_html_e('Transfer Entries', 'chinemerem-foods'); ?></div>
                 </div>
