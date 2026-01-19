@@ -33,6 +33,26 @@ if (!empty($range['start_display']) && !empty($range['end_display'])) {
     $range_display = $range['end_display'];
 }
 
+$detail_range_args = array();
+if (!empty($range['start_date'])) {
+    $detail_range_args['start'] = $range['start_date'];
+}
+if (!empty($range['end_date'])) {
+    $detail_range_args['end'] = $range['end_date'];
+}
+$detail_date = !empty($range['end_date']) ? $range['end_date'] : (!empty($range['start_date']) ? $range['start_date'] : current_time('Y-m-d'));
+$resolve_page_url = function($slug, $fallback) {
+    $page = get_page_by_path($slug);
+    return $page ? get_permalink($page->ID) : home_url($fallback);
+};
+$order_history_url = add_query_arg($detail_range_args, $resolve_page_url('cfi-order-history', '/order-history/'));
+$transfer_history_url = add_query_arg($detail_range_args, $resolve_page_url('cfi-transfer-history', '/transfer-history/'));
+$expenses_history_url = add_query_arg($detail_range_args, $resolve_page_url('cfi-expenses-history', '/expenses-history/'));
+$cashout_history_url = add_query_arg($detail_range_args, $resolve_page_url('cfi-cash-out-history', '/cash-out-history/'));
+$debtors_history_url = add_query_arg($detail_range_args, $resolve_page_url('cfi-debtors-history', '/debtors-history/'));
+$order_summary_url = add_query_arg(array('date' => $detail_date), $resolve_page_url('cfi-order-product-summary', '/order-product-summary/'));
+$credit_summary_url = add_query_arg(array('date' => $detail_date), $resolve_page_url('cfi-credit-order-summary', '/credit-order-summary/'));
+
 $format_currency = function($value) {
     return '₦' . number_format((float) $value, 2);
 };
@@ -103,6 +123,13 @@ $format_number = function($value) {
         border: 2px solid rgba(0, 25, 67, 0.08);
         box-shadow: 0 6px 18px rgba(0, 25, 67, 0.08);
         text-align: center;
+    }
+    .cfi-analytics-card-actions {
+        margin-top: 0.75rem;
+    }
+    .cfi-analytics-card-actions .cfi-btn {
+        font-size: 0.65rem;
+        padding: 0.35rem 0.65rem;
     }
     .cfi-analytics-icon {
         width: 36px;
@@ -203,31 +230,61 @@ $format_number = function($value) {
                     <div class="cfi-analytics-icon"><i class="fas fa-receipt"></i></div>
                     <div class="cfi-analytics-value" data-analytics="orders.total_orders" data-format="number"><?php echo esc_html($format_number($summary['orders']['total_orders'] ?? 0)); ?></div>
                     <div class="cfi-analytics-label"><?php esc_html_e('Total Orders', 'chinemerem-foods'); ?></div>
+                    <div class="cfi-analytics-card-actions">
+                        <a class="cfi-btn cfi-btn-outline cfi-btn-sm" href="<?php echo esc_url($order_history_url); ?>">
+                            <?php esc_html_e('View', 'chinemerem-foods'); ?>
+                        </a>
+                    </div>
                 </div>
                 <div class="cfi-analytics-card">
                     <div class="cfi-analytics-icon"><i class="fas fa-money-bill-wave"></i></div>
                     <div class="cfi-analytics-value" data-analytics="orders.cash_orders" data-format="number"><?php echo esc_html($format_number($summary['orders']['cash_orders'] ?? 0)); ?></div>
                     <div class="cfi-analytics-label"><?php esc_html_e('Cash Orders', 'chinemerem-foods'); ?></div>
+                    <div class="cfi-analytics-card-actions">
+                        <a class="cfi-btn cfi-btn-outline cfi-btn-sm" href="<?php echo esc_url($order_summary_url); ?>">
+                            <?php esc_html_e('View', 'chinemerem-foods'); ?>
+                        </a>
+                    </div>
                 </div>
                 <div class="cfi-analytics-card">
                     <div class="cfi-analytics-icon"><i class="fas fa-user-clock"></i></div>
                     <div class="cfi-analytics-value" data-analytics="orders.credit_orders" data-format="number"><?php echo esc_html($format_number($summary['orders']['credit_orders'] ?? 0)); ?></div>
                     <div class="cfi-analytics-label"><?php esc_html_e('Credit Orders', 'chinemerem-foods'); ?></div>
+                    <div class="cfi-analytics-card-actions">
+                        <a class="cfi-btn cfi-btn-outline cfi-btn-sm" href="<?php echo esc_url($credit_summary_url); ?>">
+                            <?php esc_html_e('View', 'chinemerem-foods'); ?>
+                        </a>
+                    </div>
                 </div>
                 <div class="cfi-analytics-card">
                     <div class="cfi-analytics-icon"><i class="fas fa-coins"></i></div>
                     <div class="cfi-analytics-value" data-analytics="orders.total_sales" data-format="currency"><?php echo esc_html($format_currency($summary['orders']['total_sales'] ?? 0)); ?></div>
                     <div class="cfi-analytics-label"><?php esc_html_e('Total Sales', 'chinemerem-foods'); ?></div>
+                    <div class="cfi-analytics-card-actions">
+                        <a class="cfi-btn cfi-btn-outline cfi-btn-sm" href="<?php echo esc_url($order_history_url); ?>">
+                            <?php esc_html_e('View', 'chinemerem-foods'); ?>
+                        </a>
+                    </div>
                 </div>
                 <div class="cfi-analytics-card">
                     <div class="cfi-analytics-icon"><i class="fas fa-wallet"></i></div>
                     <div class="cfi-analytics-value" data-analytics="orders.cash_received" data-format="currency"><?php echo esc_html($format_currency($summary['orders']['cash_received'] ?? 0)); ?></div>
                     <div class="cfi-analytics-label"><?php esc_html_e('Cash Received', 'chinemerem-foods'); ?></div>
+                    <div class="cfi-analytics-card-actions">
+                        <a class="cfi-btn cfi-btn-outline cfi-btn-sm" href="<?php echo esc_url($order_history_url); ?>">
+                            <?php esc_html_e('View', 'chinemerem-foods'); ?>
+                        </a>
+                    </div>
                 </div>
                 <div class="cfi-analytics-card">
                     <div class="cfi-analytics-icon"><i class="fas fa-credit-card"></i></div>
                     <div class="cfi-analytics-value" data-analytics="orders.transfer_sales" data-format="currency"><?php echo esc_html($format_currency($summary['orders']['transfer_sales'] ?? 0)); ?></div>
                     <div class="cfi-analytics-label"><?php esc_html_e('Transfer Sales', 'chinemerem-foods'); ?></div>
+                    <div class="cfi-analytics-card-actions">
+                        <a class="cfi-btn cfi-btn-outline cfi-btn-sm" href="<?php echo esc_url($transfer_history_url); ?>">
+                            <?php esc_html_e('View', 'chinemerem-foods'); ?>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -239,31 +296,61 @@ $format_number = function($value) {
                     <div class="cfi-analytics-icon"><i class="fas fa-file-invoice-dollar"></i></div>
                     <div class="cfi-analytics-value" data-analytics="debtors.orders_total" data-format="currency"><?php echo esc_html($format_currency($summary['debtors']['orders_total'] ?? 0)); ?></div>
                     <div class="cfi-analytics-label"><?php esc_html_e('Debtor Orders Value', 'chinemerem-foods'); ?></div>
+                    <div class="cfi-analytics-card-actions">
+                        <a class="cfi-btn cfi-btn-outline cfi-btn-sm" href="<?php echo esc_url($debtors_history_url); ?>">
+                            <?php esc_html_e('View', 'chinemerem-foods'); ?>
+                        </a>
+                    </div>
                 </div>
                 <div class="cfi-analytics-card">
                     <div class="cfi-analytics-icon"><i class="fas fa-list-check"></i></div>
                     <div class="cfi-analytics-value" data-analytics="debtors.orders_count" data-format="number"><?php echo esc_html($format_number($summary['debtors']['orders_count'] ?? 0)); ?></div>
                     <div class="cfi-analytics-label"><?php esc_html_e('Debtor Orders Count', 'chinemerem-foods'); ?></div>
+                    <div class="cfi-analytics-card-actions">
+                        <a class="cfi-btn cfi-btn-outline cfi-btn-sm" href="<?php echo esc_url($credit_summary_url); ?>">
+                            <?php esc_html_e('View', 'chinemerem-foods'); ?>
+                        </a>
+                    </div>
                 </div>
                 <div class="cfi-analytics-card">
                     <div class="cfi-analytics-icon"><i class="fas fa-hand-holding-usd"></i></div>
                     <div class="cfi-analytics-value" data-analytics="debtors.payments_total" data-format="currency"><?php echo esc_html($format_currency($summary['debtors']['payments_total'] ?? 0)); ?></div>
                     <div class="cfi-analytics-label"><?php esc_html_e('Payments Received', 'chinemerem-foods'); ?></div>
+                    <div class="cfi-analytics-card-actions">
+                        <a class="cfi-btn cfi-btn-outline cfi-btn-sm" href="<?php echo esc_url($debtors_history_url); ?>">
+                            <?php esc_html_e('View', 'chinemerem-foods'); ?>
+                        </a>
+                    </div>
                 </div>
                 <div class="cfi-analytics-card">
                     <div class="cfi-analytics-icon"><i class="fas fa-money-bill-wave"></i></div>
                     <div class="cfi-analytics-value" data-analytics="debtors.payments_cash" data-format="currency"><?php echo esc_html($format_currency($summary['debtors']['payments_cash'] ?? 0)); ?></div>
                     <div class="cfi-analytics-label"><?php esc_html_e('Payments Cash', 'chinemerem-foods'); ?></div>
+                    <div class="cfi-analytics-card-actions">
+                        <a class="cfi-btn cfi-btn-outline cfi-btn-sm" href="<?php echo esc_url($debtors_history_url); ?>">
+                            <?php esc_html_e('View', 'chinemerem-foods'); ?>
+                        </a>
+                    </div>
                 </div>
                 <div class="cfi-analytics-card">
                     <div class="cfi-analytics-icon"><i class="fas fa-university"></i></div>
                     <div class="cfi-analytics-value" data-analytics="debtors.payments_transfer" data-format="currency"><?php echo esc_html($format_currency($summary['debtors']['payments_transfer'] ?? 0)); ?></div>
                     <div class="cfi-analytics-label"><?php esc_html_e('Payments Transfer', 'chinemerem-foods'); ?></div>
+                    <div class="cfi-analytics-card-actions">
+                        <a class="cfi-btn cfi-btn-outline cfi-btn-sm" href="<?php echo esc_url($debtors_history_url); ?>">
+                            <?php esc_html_e('View', 'chinemerem-foods'); ?>
+                        </a>
+                    </div>
                 </div>
                 <div class="cfi-analytics-card">
                     <div class="cfi-analytics-icon"><i class="fas fa-house-user"></i></div>
                     <div class="cfi-analytics-value" data-analytics="debtors.payments_home" data-format="currency"><?php echo esc_html($format_currency($summary['debtors']['payments_home'] ?? 0)); ?></div>
                     <div class="cfi-analytics-label"><?php esc_html_e('Home Calculations', 'chinemerem-foods'); ?></div>
+                    <div class="cfi-analytics-card-actions">
+                        <a class="cfi-btn cfi-btn-outline cfi-btn-sm" href="<?php echo esc_url($debtors_history_url); ?>">
+                            <?php esc_html_e('View', 'chinemerem-foods'); ?>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -275,11 +362,21 @@ $format_number = function($value) {
                     <div class="cfi-analytics-icon"><i class="fas fa-receipt"></i></div>
                     <div class="cfi-analytics-value" data-analytics="expenses.total_amount" data-format="currency"><?php echo esc_html($format_currency($summary['expenses']['total_amount'] ?? 0)); ?></div>
                     <div class="cfi-analytics-label"><?php esc_html_e('Total Expenses', 'chinemerem-foods'); ?></div>
+                    <div class="cfi-analytics-card-actions">
+                        <a class="cfi-btn cfi-btn-outline cfi-btn-sm" href="<?php echo esc_url($expenses_history_url); ?>">
+                            <?php esc_html_e('View', 'chinemerem-foods'); ?>
+                        </a>
+                    </div>
                 </div>
                 <div class="cfi-analytics-card">
                     <div class="cfi-analytics-icon"><i class="fas fa-list"></i></div>
                     <div class="cfi-analytics-value" data-analytics="expenses.total_count" data-format="number"><?php echo esc_html($format_number($summary['expenses']['total_count'] ?? 0)); ?></div>
                     <div class="cfi-analytics-label"><?php esc_html_e('Expense Entries', 'chinemerem-foods'); ?></div>
+                    <div class="cfi-analytics-card-actions">
+                        <a class="cfi-btn cfi-btn-outline cfi-btn-sm" href="<?php echo esc_url($expenses_history_url); ?>">
+                            <?php esc_html_e('View', 'chinemerem-foods'); ?>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -291,26 +388,51 @@ $format_number = function($value) {
                     <div class="cfi-analytics-icon"><i class="fas fa-right-left"></i></div>
                     <div class="cfi-analytics-value" data-analytics="transfers.total_amount" data-format="currency"><?php echo esc_html($format_currency($summary['transfers']['total_amount'] ?? 0)); ?></div>
                     <div class="cfi-analytics-label"><?php esc_html_e('Total Transfers', 'chinemerem-foods'); ?></div>
+                    <div class="cfi-analytics-card-actions">
+                        <a class="cfi-btn cfi-btn-outline cfi-btn-sm" href="<?php echo esc_url($transfer_history_url); ?>">
+                            <?php esc_html_e('View', 'chinemerem-foods'); ?>
+                        </a>
+                    </div>
                 </div>
                 <div class="cfi-analytics-card">
                     <div class="cfi-analytics-icon"><i class="fas fa-cart-shopping"></i></div>
                     <div class="cfi-analytics-value" data-analytics="transfers.orders_amount" data-format="currency"><?php echo esc_html($format_currency($summary['transfers']['orders_amount'] ?? 0)); ?></div>
                     <div class="cfi-analytics-label"><?php esc_html_e('Order Transfers', 'chinemerem-foods'); ?></div>
+                    <div class="cfi-analytics-card-actions">
+                        <a class="cfi-btn cfi-btn-outline cfi-btn-sm" href="<?php echo esc_url($order_history_url); ?>">
+                            <?php esc_html_e('View', 'chinemerem-foods'); ?>
+                        </a>
+                    </div>
                 </div>
                 <div class="cfi-analytics-card">
                     <div class="cfi-analytics-icon"><i class="fas fa-user-clock"></i></div>
                     <div class="cfi-analytics-value" data-analytics="transfers.debtors_amount" data-format="currency"><?php echo esc_html($format_currency($summary['transfers']['debtors_amount'] ?? 0)); ?></div>
                     <div class="cfi-analytics-label"><?php esc_html_e('Debtor Transfers', 'chinemerem-foods'); ?></div>
+                    <div class="cfi-analytics-card-actions">
+                        <a class="cfi-btn cfi-btn-outline cfi-btn-sm" href="<?php echo esc_url($debtors_history_url); ?>">
+                            <?php esc_html_e('View', 'chinemerem-foods'); ?>
+                        </a>
+                    </div>
                 </div>
                 <div class="cfi-analytics-card">
                     <div class="cfi-analytics-icon"><i class="fas fa-piggy-bank"></i></div>
                     <div class="cfi-analytics-value" data-analytics="transfers.cashout_amount" data-format="currency"><?php echo esc_html($format_currency($summary['transfers']['cashout_amount'] ?? 0)); ?></div>
                     <div class="cfi-analytics-label"><?php esc_html_e('Cash Out Transfers', 'chinemerem-foods'); ?></div>
+                    <div class="cfi-analytics-card-actions">
+                        <a class="cfi-btn cfi-btn-outline cfi-btn-sm" href="<?php echo esc_url($cashout_history_url); ?>">
+                            <?php esc_html_e('View', 'chinemerem-foods'); ?>
+                        </a>
+                    </div>
                 </div>
                 <div class="cfi-analytics-card">
                     <div class="cfi-analytics-icon"><i class="fas fa-clipboard-check"></i></div>
                     <div class="cfi-analytics-value" data-analytics="transfers.total_count" data-format="number"><?php echo esc_html($format_number($summary['transfers']['total_count'] ?? 0)); ?></div>
                     <div class="cfi-analytics-label"><?php esc_html_e('Transfer Entries', 'chinemerem-foods'); ?></div>
+                    <div class="cfi-analytics-card-actions">
+                        <a class="cfi-btn cfi-btn-outline cfi-btn-sm" href="<?php echo esc_url($transfer_history_url); ?>">
+                            <?php esc_html_e('View', 'chinemerem-foods'); ?>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -322,11 +444,21 @@ $format_number = function($value) {
                     <div class="cfi-analytics-icon"><i class="fas fa-building-columns"></i></div>
                     <div class="cfi-analytics-value" data-analytics="cashout.total_amount" data-format="currency"><?php echo esc_html($format_currency($summary['cashout']['total_amount'] ?? 0)); ?></div>
                     <div class="cfi-analytics-label"><?php esc_html_e('Total Cash Out', 'chinemerem-foods'); ?></div>
+                    <div class="cfi-analytics-card-actions">
+                        <a class="cfi-btn cfi-btn-outline cfi-btn-sm" href="<?php echo esc_url($cashout_history_url); ?>">
+                            <?php esc_html_e('View', 'chinemerem-foods'); ?>
+                        </a>
+                    </div>
                 </div>
                 <div class="cfi-analytics-card">
                     <div class="cfi-analytics-icon"><i class="fas fa-list-ol"></i></div>
                     <div class="cfi-analytics-value" data-analytics="cashout.total_count" data-format="number"><?php echo esc_html($format_number($summary['cashout']['total_count'] ?? 0)); ?></div>
                     <div class="cfi-analytics-label"><?php esc_html_e('Cash Out Entries', 'chinemerem-foods'); ?></div>
+                    <div class="cfi-analytics-card-actions">
+                        <a class="cfi-btn cfi-btn-outline cfi-btn-sm" href="<?php echo esc_url($cashout_history_url); ?>">
+                            <?php esc_html_e('View', 'chinemerem-foods'); ?>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
