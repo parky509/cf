@@ -105,29 +105,27 @@ foreach ($orders as $order) {
         /* Receipt Modal */
         .receipt-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; padding: 1rem; }
         .receipt-modal.active { display: flex; }
-        .receipt-content { background: white; max-width: 400px; width: 100%; max-height: 90vh; overflow-y: auto; border-radius: 12px; }
+        .receipt-content { background: white; max-width: 80mm; width: 100%; max-height: 90vh; overflow-y: auto; border-radius: 12px; }
         .receipt-header { background: #001943; color: white; padding: 1rem; display: flex; justify-content: space-between; align-items: center; border-radius: 12px 12px 0 0; }
         .receipt-header h3 { margin: 0; font-size: 1rem; }
-        .receipt-body { padding: 1rem; font-family: 'Courier New', monospace; font-size: 0.85rem; }
-        .receipt-company { text-align: center; border-bottom: 1px dashed #999; padding-bottom: 0.5rem; margin-bottom: 0.5rem; }
-        .receipt-company h2 { margin: 0; font-size: 1rem; }
+        .receipt-body { padding: 1rem; font-family: 'Courier New', monospace; font-size: 0.8rem; width: 100%; box-sizing: border-box; }
+        .receipt-company { text-align: center; margin-bottom: 0.5rem; }
+        .receipt-company h2 { margin: 0; font-size: 1rem; font-weight: 800; letter-spacing: 0.5px; }
         .receipt-company p { margin: 0; font-size: 0.75rem; color: #666; }
+        .receipt-divider { border-top: 1px dashed #333; margin: 0.5rem 0; }
         .receipt-info p { margin: 0.2rem 0; display: flex; justify-content: space-between; }
-        .receipt-items { border-top: 1px solid #333; border-bottom: 1px solid #333; margin: 0.75rem 0; padding: 0.75rem 0; }
-        .receipt-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; table-layout: fixed; border: 1px solid #333; }
-        .receipt-table th { text-align: center; font-weight: bold; border: 1px solid #333; padding: 0.45rem 0.3rem; background: #f1f5f9; }
-        .receipt-table td { padding: 0.45rem 0.3rem; text-align: center; border: 1px solid #333; line-height: 1.3; }
-        .receipt-table th:first-child, .receipt-table td:first-child { text-align: left; width: 40%; }
-        .receipt-table th:nth-child(2), .receipt-table td:nth-child(2) { text-align: right; width: 20%; }
-        .receipt-table th:nth-child(3), .receipt-table td:nth-child(3) { width: 14%; }
-        .receipt-table th:nth-child(4), .receipt-table td:nth-child(4) { text-align: right; width: 26%; font-weight: 600; }
-        .receipt-table .discount-row td { font-size: 0.7rem; font-style: italic; background: #f8fafc; }
-        .receipt-table .discount-label { text-align: left; }
-        .receipt-table .discount-value { text-align: right; color: #dc2626; font-weight: 600; }
+        .receipt-items { margin: 0.5rem 0; }
+        .receipt-row { display: grid; grid-template-columns: 1.6fr 0.8fr 0.5fr 0.9fr; gap: 6px; align-items: baseline; }
+        .receipt-row .item-price, .receipt-row .item-qty, .receipt-row .item-total { text-align: right; }
+        .receipt-item-header { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: #0f172a; }
+        .receipt-item { padding: 0.35rem 0; border-bottom: 1px dashed #e2e8f0; }
+        .receipt-item:last-child { border-bottom: none; }
+        .receipt-item-discount { display: flex; justify-content: space-between; font-size: 0.7rem; margin-top: 0.2rem; }
+        .receipt-item-discount .receipt-amount { color: #dc2626; }
+        .receipt-amount { font-weight: 700; }
         .receipt-totals p { margin: 0.2rem 0; display: flex; justify-content: space-between; }
-        .receipt-totals .total-row span:last-child { font-weight: 700; }
-        .receipt-totals .grand { font-weight: bold; font-size: 1rem; border-top: 1px solid #333; padding-top: 0.3rem; margin-top: 0.3rem; }
-        .receipt-footer { text-align: center; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px dashed #999; font-size: 0.75rem; color: #666; }
+        .receipt-totals .grand { font-weight: 700; font-size: 1rem; }
+        .receipt-footer { text-align: center; margin-top: 0.5rem; font-size: 0.75rem; color: #666; }
         .receipt-actions { padding: 1rem; display: flex; gap: 0.5rem; justify-content: center; border-top: 1px solid #e2e8f0; }
         
         @media (max-width: 768px) {
@@ -305,6 +303,7 @@ function showReceipt(orderId) {
     
     var html = '<div id="print-content">';
     html += '<div class="receipt-company"><h2>CHINEMEREM FOODS</h2><p>Inventory Management System</p></div>';
+    html += '<div class="receipt-divider"></div>';
     html += '<div class="receipt-info">';
     html += '<p><span>Order #:</span><strong>' + order.order_number + '</strong></p>';
     html += '<p><span>Date:</span><span>' + order.order_date + '</span></p>';
@@ -314,38 +313,40 @@ function showReceipt(orderId) {
     }
     html += '<p><span>Staff:</span><span>' + (order.staff_name || 'Unknown') + '</span></p>';
     html += '</div>';
+    html += '<div class="receipt-divider"></div>';
     
     html += '<div class="receipt-items">';
-    html += '<table class="receipt-table">';
-    html += '<thead><tr><th>Item</th><th>Price</th><th>Qty</th><th>Total</th></tr></thead>';
-    html += '<tbody>';
+    html += '<div class="receipt-row receipt-item-header"><span>Item</span><span class="item-price">Price</span><span class="item-qty">Qty</span><span class="item-total">Total</span></div>';
     if (order.items && order.items.length > 0) {
         order.items.forEach(function(item) {
             var discountDisplay = Number(item.discount) > 0 ? '-₦' + formatReceiptNumber(item.discount) : '-';
-            html += '<tr class="item-row">';
-            html += '<td>' + item.product_name + '</td>';
-            html += '<td>₦' + formatReceiptNumber(item.price) + '</td>';
-            html += '<td>' + formatReceiptNumber(item.quantity) + '</td>';
-            html += '<td>₦' + formatReceiptNumber(item.total) + '</td>';
-            html += '</tr>';
-            html += '<tr class="discount-row"><td class="discount-label" colspan="3">Discount</td><td class="discount-value">' + discountDisplay + '</td></tr>';
+            html += '<div class="receipt-item">';
+            html += '<div class="receipt-row receipt-item-row">';
+            html += '<span>' + item.product_name + '</span>';
+            html += '<span class="item-price receipt-amount">₦' + formatReceiptNumber(item.price) + '</span>';
+            html += '<span class="item-qty receipt-amount">' + formatReceiptNumber(item.quantity) + '</span>';
+            html += '<span class="item-total receipt-amount">₦' + formatReceiptNumber(item.total) + '</span>';
+            html += '</div>';
+            html += '<div class="receipt-item-discount"><span>Discount:</span><span class="receipt-amount">' + discountDisplay + '</span></div>';
+            html += '</div>';
         });
     }
-    html += '</tbody></table>';
     html += '</div>';
+    html += '<div class="receipt-divider"></div>';
     
     html += '<div class="receipt-totals">';
-    html += '<p class="total-row"><span>Subtotal:</span><span>₦' + formatReceiptNumber(order.total_amount) + '</span></p>';
-    html += '<p class="total-row"><span>Total Discount:</span><span>-₦' + formatReceiptNumber(order.discount_amount || 0) + '</span></p>';
-    html += '<p class="grand"><span>GRAND TOTAL:</span><span>₦' + formatReceiptNumber(order.grand_total) + '</span></p>';
+    html += '<p><span>Subtotal:</span><span class="receipt-amount">₦' + formatReceiptNumber(order.total_amount) + '</span></p>';
+    html += '<p><span>Total Discount:</span><span class="receipt-amount">-₦' + formatReceiptNumber(order.discount_amount || 0) + '</span></p>';
+    html += '<p class="grand"><span>GRAND TOTAL:</span><span class="receipt-amount">₦' + formatReceiptNumber(order.grand_total) + '</span></p>';
     html += '<p><span>Payment:</span><span>' + (order.payment_method || 'Cash') + '</span></p>';
     if (order.transfer_amount > 0) {
-        html += '<p><span>Transfer:</span><span>₦' + formatReceiptNumber(order.transfer_amount) + '</span></p>';
+        html += '<p><span>Transfer:</span><span class="receipt-amount">₦' + formatReceiptNumber(order.transfer_amount) + '</span></p>';
     }
     if (order.cash_amount > 0) {
-        html += '<p><span>Cash:</span><span>₦' + formatReceiptNumber(order.cash_amount) + '</span></p>';
+        html += '<p><span>Cash:</span><span class="receipt-amount">₦' + formatReceiptNumber(order.cash_amount) + '</span></p>';
     }
     html += '</div>';
+    html += '<div class="receipt-divider"></div>';
     
     html += '<div class="receipt-footer">';
     html += '<p>Thank you for your patronage!</p>';
@@ -432,9 +433,37 @@ async function printToBluetoothPrinter(text) {
 
 function generateESCPOSReceiptFromOrder(order) {
     var text = '';
-    var line = '--------------------------------';
-    text += '       CHINEMEREM FOODS\n';
-    text += '        Sales Receipt\n';
+    var ESC = '\x1b';
+    var GS = '\x1d';
+    var boldOn = ESC + 'E' + '\x01';
+    var boldOff = ESC + 'E' + '\x00';
+    var doubleOn = GS + '!' + '\x11';
+    var doubleOff = GS + '!' + '\x00';
+    var lineWidth = 48;
+    var itemWidth = 20;
+    var priceWidth = 8;
+    var qtyWidth = 5;
+    var totalWidth = 12;
+    var line = '-'.repeat(lineWidth);
+
+    function centerText(text, width) {
+        var useWidth = width || lineWidth;
+        var padding = Math.floor((useWidth - text.length) / 2);
+        return ' '.repeat(Math.max(0, padding)) + text;
+    }
+
+    function leftRight(left, right) {
+        var space = lineWidth - left.length - right.length;
+        return left + ' '.repeat(Math.max(1, space)) + right;
+    }
+
+    function leftRightBold(left, right) {
+        var space = lineWidth - left.length - right.length;
+        return left + ' '.repeat(Math.max(1, space)) + boldOn + right + boldOff;
+    }
+
+    text += doubleOn + boldOn + centerText('CHINEMEREM FOODS', Math.floor(lineWidth / 2)) + boldOff + doubleOff + '\n';
+    text += centerText('Sales Receipt') + '\n';
     text += line + '\n';
     text += 'Order: ' + order.order_number + '\n';
     text += 'Date: ' + order.order_date + '\n';
@@ -442,29 +471,30 @@ function generateESCPOSReceiptFromOrder(order) {
     if (order.customer_name) text += 'Customer: ' + order.customer_name + '\n';
     text += 'Staff: ' + (order.staff_name || 'Unknown') + '\n';
     text += line + '\n';
-    text += 'ITEM'.padEnd(10) + '|' + 'PRICE'.padEnd(7) + '|' + 'QTY'.padEnd(4) + '|' + 'TOTAL'.padEnd(8) + '\n';
+    text += 'ITEM'.padEnd(itemWidth) + ' ' + 'PRICE'.padStart(priceWidth) + ' ' + 'QTY'.padStart(qtyWidth) + ' ' + 'TOTAL'.padStart(totalWidth) + '\n';
     text += line + '\n';
     if (order.items && order.items.length > 0) {
         order.items.forEach(function(item) {
-            var name = (item.product_name || '').substring(0, 10).padEnd(10);
-            var price = String(formatReceiptNumber(item.price)).padStart(7);
-            var qty = String(formatReceiptNumber(item.quantity)).padStart(4);
-            var total = String(formatReceiptNumber(item.total)).padStart(8);
+            var name = (item.product_name || '').substring(0, itemWidth).padEnd(itemWidth);
+            var price = String(formatReceiptNumber(item.price)).padStart(priceWidth);
+            var qty = String(formatReceiptNumber(item.quantity)).padStart(qtyWidth);
+            var total = String(formatReceiptNumber(item.total)).padStart(totalWidth);
             var discount = Number(item.discount) > 0 ? '-N' + formatReceiptNumber(item.discount) : '-';
-            var discountLabel = '  Discount:';
-            text += name + '|' + price + '|' + qty + '|' + total + '\n';
-            text += discountLabel + String(discount).padStart(line.length - discountLabel.length) + '\n\n';
+            text += name + ' ' + boldOn + price + boldOff + ' ' + boldOn + qty + boldOff + ' ' + boldOn + total + boldOff + '\n';
+            text += leftRightBold('Discount:', discount) + '\n\n';
         });
     }
     text += line + '\n';
-    text += 'Subtotal:          N' + String(formatReceiptNumber(order.total_amount)).padStart(9) + '\n';
-    text += 'Total Discount:   -N' + String(formatReceiptNumber(order.discount_amount || 0)).padStart(9) + '\n';
+    text += leftRightBold('Subtotal:', 'N' + formatReceiptNumber(order.total_amount)) + '\n';
+    text += leftRightBold('Total Discount:', '-N' + formatReceiptNumber(order.discount_amount || 0)) + '\n';
     text += line + '\n';
-    text += 'GRAND TOTAL:       N' + String(formatReceiptNumber(order.grand_total)).padStart(9) + '\n';
-    text += 'Payment: ' + (order.payment_method || 'Cash') + '\n';
+    text += leftRightBold('GRAND TOTAL:', 'N' + formatReceiptNumber(order.grand_total)) + '\n';
+    text += leftRight('Payment:', (order.payment_method || 'Cash')) + '\n';
+    if (order.transfer_amount > 0) text += leftRightBold('Transfer:', 'N' + formatReceiptNumber(order.transfer_amount)) + '\n';
+    if (order.cash_amount > 0) text += leftRightBold('Cash:', 'N' + formatReceiptNumber(order.cash_amount)) + '\n';
     text += line + '\n';
-    text += '   Thank you for your patronage!\n';
-    text += '      Powered by BendlessTech\n';
+    text += centerText('Thank you for your patronage!') + '\n';
+    text += centerText('Powered by BendlessTech') + '\n';
     text += '\n\n\n';
     return text;
 }
@@ -495,28 +525,22 @@ async function printReceipt() {
     printWindow.document.write('<style>');
     printWindow.document.write('@page{size:80mm auto;margin:0}');
     printWindow.document.write('*{margin:0;padding:0;box-sizing:border-box}');
-    printWindow.document.write('body{font-family:"Courier New",Courier,monospace;font-size:13px;width:80mm;max-width:80mm;margin:0 auto;padding:3mm;line-height:1.4;color:#000}');
-    printWindow.document.write('.receipt-company{text-align:center;padding:8px 0;border-bottom:2px dashed #000;margin-bottom:10px}');
-    printWindow.document.write('.receipt-company h2{font-size:16px;font-weight:bold;margin:0 0 5px}');
+    printWindow.document.write('body{font-family:"Courier New",Courier,monospace;font-size:12px;width:80mm;max-width:80mm;margin:0 auto;padding:3mm;line-height:1.4;color:#000}');
+    printWindow.document.write('.receipt-company{text-align:center;margin-bottom:6px}');
+    printWindow.document.write('.receipt-company h2{font-size:16px;font-weight:800;margin:0 0 4px;letter-spacing:0.5px}');
     printWindow.document.write('.receipt-company p{font-size:11px;margin:0}');
-    printWindow.document.write('.receipt-info{margin:10px 0;padding:8px 0;border-bottom:1px dashed #000}');
-    printWindow.document.write('.receipt-info p{display:flex;justify-content:space-between;margin:6px 0;font-size:12px}');
-    printWindow.document.write('.receipt-items{margin:10px 0;padding:8px 0;border-bottom:1px solid #000}');
-    printWindow.document.write('.receipt-table{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed;border:1px solid #000}');
-    printWindow.document.write('.receipt-table th{border:1px solid #000;padding:6px 3px;text-align:center;font-weight:bold;background:#f1f1f1}');
-    printWindow.document.write('.receipt-table td{padding:6px 3px;text-align:center;border:1px solid #000;line-height:1.4}');
-    printWindow.document.write('.receipt-table th:first-child,.receipt-table td:first-child{text-align:left;width:40%}');
-    printWindow.document.write('.receipt-table th:nth-child(2),.receipt-table td:nth-child(2){text-align:right;width:20%}');
-    printWindow.document.write('.receipt-table th:nth-child(3),.receipt-table td:nth-child(3){width:14%}');
-    printWindow.document.write('.receipt-table th:nth-child(4),.receipt-table td:nth-child(4){text-align:right;width:26%;font-weight:bold}');
-    printWindow.document.write('.receipt-table .discount-row td{font-style:italic;background:#f8f8f8}');
-    printWindow.document.write('.receipt-table .discount-label{text-align:left}');
-    printWindow.document.write('.receipt-table .discount-value{text-align:right;color:#c00}');
-    printWindow.document.write('.receipt-totals{margin:10px 0;padding:10px 0;border-top:2px solid #000}');
-    printWindow.document.write('.receipt-totals p{display:flex;justify-content:space-between;margin:6px 0;font-size:12px}');
-    printWindow.document.write('.receipt-totals .total-row span:last-child{font-weight:bold}');
-    printWindow.document.write('.receipt-totals .grand{font-size:14px;font-weight:bold}');
-    printWindow.document.write('.receipt-footer{text-align:center;margin-top:15px;padding-top:10px;border-top:1px dashed #000;font-size:10px}');
+    printWindow.document.write('.receipt-divider{border-top:1px dashed #000;margin:6px 0}');
+    printWindow.document.write('.receipt-info p{display:flex;justify-content:space-between;margin:4px 0;font-size:12px}');
+    printWindow.document.write('.receipt-row{display:grid;grid-template-columns:1.6fr 0.8fr 0.5fr 0.9fr;gap:6px;align-items:baseline;font-size:11px}');
+    printWindow.document.write('.receipt-row .item-price,.receipt-row .item-qty,.receipt-row .item-total{text-align:right}');
+    printWindow.document.write('.receipt-item-header{font-size:10px;font-weight:700;text-transform:uppercase}');
+    printWindow.document.write('.receipt-item{padding:4px 0;border-bottom:1px dashed #999}');
+    printWindow.document.write('.receipt-item:last-child{border-bottom:none}');
+    printWindow.document.write('.receipt-item-discount{display:flex;justify-content:space-between;font-size:10px;margin-top:2px}');
+    printWindow.document.write('.receipt-amount{font-weight:700}');
+    printWindow.document.write('.receipt-totals p{display:flex;justify-content:space-between;margin:4px 0;font-size:12px}');
+    printWindow.document.write('.receipt-totals .grand{font-size:13px;font-weight:700}');
+    printWindow.document.write('.receipt-footer{text-align:center;margin-top:6px;font-size:10px}');
     printWindow.document.write('@media print{body{padding:0}}');
     printWindow.document.write('</style></head><body>');
     printWindow.document.write(printContent.innerHTML);
