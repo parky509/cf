@@ -1053,11 +1053,14 @@ function generateESCPOSReceipt() {
     var boldOff = ESC + 'E' + '\x00';
     var doubleOn = GS + '!' + '\x11';
     var doubleOff = GS + '!' + '\x00';
+    // 48 characters per line for 80mm thermal printers.
     var lineWidth = 48;
+    var doubleWidth = Math.floor(lineWidth / 2);
     var itemWidth = 20;
     var priceWidth = 8;
     var qtyWidth = 5;
     var totalWidth = 12;
+    // Column widths + 3 spaces = 48.
     var line = '-'.repeat(lineWidth);
 
     function centerText(text, width) {
@@ -1077,7 +1080,7 @@ function generateESCPOSReceipt() {
     }
     
     // Header - centered
-    text += doubleOn + boldOn + centerText('CHINEMEREM FOODS', Math.floor(lineWidth / 2)) + boldOff + doubleOff + '\n';
+    text += doubleOn + boldOn + centerText('CHINEMEREM FOODS', doubleWidth) + boldOff + doubleOff + '\n';
     text += centerText('Sales Receipt') + '\n';
     text += line + '\n';
     
@@ -1095,7 +1098,8 @@ function generateESCPOSReceipt() {
     text += 'ITEM'.padEnd(itemWidth) + ' ' + 'PRICE'.padStart(priceWidth) + ' ' + 'QTY'.padStart(qtyWidth) + ' ' + 'TOTAL'.padStart(totalWidth) + '\n';
     text += line + '\n';
     <?php if (isset($receipt_data['items'])) : foreach ($receipt_data['items'] as $item) : ?>
-    text += '<?php echo str_pad(substr(esc_js($item['product_name']), 0, 20), 20); ?>' +
+    var itemName = '<?php echo esc_js($item['product_name']); ?>';
+    text += itemName.substring(0, itemWidth).padEnd(itemWidth) +
         ' ' + boldOn + String(formatReceiptNumber('<?php echo esc_js($item['price']); ?>')).padStart(priceWidth) + boldOff +
         ' ' + boldOn + String(formatReceiptNumber('<?php echo esc_js($item['quantity']); ?>')).padStart(qtyWidth) + boldOff +
         ' ' + boldOn + String(formatReceiptNumber('<?php echo esc_js($item['total']); ?>')).padStart(totalWidth) + boldOff + '\n';
@@ -1275,14 +1279,14 @@ function generateTextReceipt() {
     
     // Items
     <?php foreach ($receipt_data['items'] as $item) : ?>
-    var itemName = '<?php echo esc_js(substr($item['product_name'], 0, 20)); ?>';
+    var itemName = '<?php echo esc_js($item['product_name']); ?>';
     var price = '<?php echo esc_js($item['price']); ?>';
     var qty = '<?php echo esc_js($item['quantity']); ?>';
     var discount = '<?php echo esc_js($item['discount']); ?>';
     var amount = '<?php echo esc_js($item['total']); ?>';
     var discountDisplay = Number(discount) > 0 ? formatReceiptNumber(discount) : '-';
     lines.push(
-        itemName.padEnd(itemWidth) + ' ' +
+        itemName.substring(0, itemWidth).padEnd(itemWidth) + ' ' +
         formatReceiptNumber(price).padStart(priceWidth) + ' ' +
         formatReceiptNumber(qty).padStart(qtyWidth) + ' ' +
         formatReceiptNumber(amount).padStart(totalWidth)

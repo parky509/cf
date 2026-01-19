@@ -347,7 +347,9 @@ function generateOrderESCPOS(o) {
     var boldOff = ESC + 'E' + '\x00';
     var doubleOn = GS + '!' + '\x11';
     var doubleOff = GS + '!' + '\x00';
+    // 48 characters per line for 80mm thermal printers.
     var lineWidth = 48;
+    var doubleWidth = Math.floor(lineWidth / 2);
     var itemWidth = 20;
     var priceWidth = 8;
     var qtyWidth = 5;
@@ -370,7 +372,7 @@ function generateOrderESCPOS(o) {
         return left + ' '.repeat(Math.max(1, space)) + boldOn + right + boldOff;
     }
 
-    text += doubleOn + boldOn + centerText('CHINEMEREM FOODS', Math.floor(lineWidth / 2)) + boldOff + doubleOff + '\n';
+    text += doubleOn + boldOn + centerText('CHINEMEREM FOODS', doubleWidth) + boldOff + doubleOff + '\n';
     text += centerText('Credit Order (Reprint)') + '\n';
     text += line + '\n';
     text += 'Order: ' + (o.order_number||'N/A') + '\n';
@@ -409,7 +411,9 @@ function generatePaymentESCPOS(p) {
     var boldOff = ESC + 'E' + '\x00';
     var doubleOn = GS + '!' + '\x11';
     var doubleOff = GS + '!' + '\x00';
+    // 48 characters per line for 80mm thermal printers.
     var lineWidth = 48;
+    var doubleWidth = Math.floor(lineWidth / 2);
     var line = '-'.repeat(lineWidth);
 
     function centerText(text, width) {
@@ -428,7 +432,7 @@ function generatePaymentESCPOS(p) {
         return left + ' '.repeat(Math.max(1, space)) + boldOn + right + boldOff;
     }
 
-    text += doubleOn + boldOn + centerText('CHINEMEREM FOODS', Math.floor(lineWidth / 2)) + boldOff + doubleOff + '\n';
+    text += doubleOn + boldOn + centerText('CHINEMEREM FOODS', doubleWidth) + boldOff + doubleOff + '\n';
     text += centerText('Debt Payment (Reprint)') + '\n';
     text += line + '\n';
     text += 'Receipt: PAY-' + p.id + '\n';

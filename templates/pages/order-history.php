@@ -439,7 +439,9 @@ function generateESCPOSReceiptFromOrder(order) {
     var boldOff = ESC + 'E' + '\x00';
     var doubleOn = GS + '!' + '\x11';
     var doubleOff = GS + '!' + '\x00';
+    // 48 characters per line for 80mm thermal printers.
     var lineWidth = 48;
+    var doubleWidth = Math.floor(lineWidth / 2);
     var itemWidth = 20;
     var priceWidth = 8;
     var qtyWidth = 5;
@@ -462,7 +464,7 @@ function generateESCPOSReceiptFromOrder(order) {
         return left + ' '.repeat(Math.max(1, space)) + boldOn + right + boldOff;
     }
 
-    text += doubleOn + boldOn + centerText('CHINEMEREM FOODS', Math.floor(lineWidth / 2)) + boldOff + doubleOff + '\n';
+    text += doubleOn + boldOn + centerText('CHINEMEREM FOODS', doubleWidth) + boldOff + doubleOff + '\n';
     text += centerText('Sales Receipt') + '\n';
     text += line + '\n';
     text += 'Order: ' + order.order_number + '\n';
