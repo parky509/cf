@@ -74,11 +74,11 @@ $products = CFI_Products::get_all();
             <div class="cfi-form-row" style="display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
                 <div class="cfi-form-group" style="flex: 1; min-width: 200px; margin: 0;">
                     <label for="import-sender"><?php esc_html_e('Sender', 'chinemerem-foods'); ?></label>
-                    <input type="text" id="import-sender" class="cfi-input" placeholder="<?php esc_attr_e('Enter sender name...', 'chinemerem-foods'); ?>">
+                    <input type="text" id="import-sender" class="cfi-input" placeholder="<?php esc_attr_e('Enter sender name...', 'chinemerem-foods'); ?>" required>
                 </div>
                 <div class="cfi-form-group" style="flex: 1; min-width: 200px; margin: 0;">
                     <label for="import-driver"><?php esc_html_e('Driver\'s Name', 'chinemerem-foods'); ?></label>
-                    <input type="text" id="import-driver" class="cfi-input" placeholder="<?php esc_attr_e('Enter driver name...', 'chinemerem-foods'); ?>">
+                    <input type="text" id="import-driver" class="cfi-input" placeholder="<?php esc_attr_e('Enter driver name...', 'chinemerem-foods'); ?>" required>
                 </div>
             </div>
             
@@ -127,8 +127,18 @@ jQuery(document).ready(function($) {
             return;
         }
         
-        const sender = $('#import-sender').val();
-        const driver = $('#import-driver').val();
+        const sender = ($('#import-sender').val() || '').trim();
+        const driver = ($('#import-driver').val() || '').trim();
+
+        if (!sender || !driver) {
+            CFI.toast.error('Sender and driver names are required');
+            if (!sender) {
+                $('#import-sender').focus();
+            } else {
+                $('#import-driver').focus();
+            }
+            return;
+        }
         const imports = [];
         
         $('#cfi-import-table tbody tr').each(function() {

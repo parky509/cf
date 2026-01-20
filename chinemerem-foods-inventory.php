@@ -402,7 +402,7 @@ final class Chinemerem_Foods_Inventory {
         }
         
         // Custom login page URL - exclude from redirect
-        $login_url = '/sign-in/';
+        $login_url = $this->get_login_url();
         $current_url = $_SERVER['REQUEST_URI'];
         
         // Allowed URLs for non-logged users
@@ -426,8 +426,7 @@ final class Chinemerem_Foods_Inventory {
         
         // Force redirect ALL non-logged users to login page
         if (!is_user_logged_in()) {
-            $login_page_url = home_url($login_url);
-            wp_redirect($login_page_url);
+            wp_redirect($login_url);
             exit;
         }
     }
@@ -461,6 +460,20 @@ final class Chinemerem_Foods_Inventory {
             return __('Staff', 'chinemerem-foods');
         }
         return __('Guest', 'chinemerem-foods');
+    }
+
+    /**
+     * Get the front-end login URL
+     */
+    private function get_login_url() {
+        $login_slugs = array('sign-in', 'cfi-login', 'login');
+        foreach ($login_slugs as $slug) {
+            $page = get_page_by_path($slug);
+            if ($page) {
+                return get_permalink($page->ID);
+            }
+        }
+        return home_url('/sign-in/');
     }
 }
 

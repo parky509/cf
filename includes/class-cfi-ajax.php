@@ -293,6 +293,7 @@ class CFI_Ajax {
         $sanitized['transfer_amount'] = floatval($data['transfer_amount'] ?? 0);
         $sanitized['cash_amount'] = floatval($data['cash_amount'] ?? 0);
         $sanitized['bank_name'] = sanitize_text_field($data['bank_name'] ?? '');
+        $sanitized['customer_name'] = sanitize_text_field($data['customer_name'] ?? '');
         $sanitized['total_quantity'] = floatval($data['total_quantity'] ?? 0);
         $sanitized['total_amount'] = floatval($data['total_amount'] ?? 0);
         $sanitized['discount_amount'] = floatval($data['discount_amount'] ?? 0);
@@ -765,6 +766,14 @@ class CFI_Ajax {
             wp_send_json_error(array('message' => __('Invalid import data', 'chinemerem-foods')));
         }
         
+        foreach ($imports as $import) {
+            $sender = trim((string) ($import['sender'] ?? ''));
+            $driver = trim((string) ($import['driver_name'] ?? ''));
+            if ($sender === '' || $driver === '') {
+                wp_send_json_error(array('message' => __('Sender and driver names are required', 'chinemerem-foods')));
+            }
+        }
+
         $result = CFI_Imports::add($imports);
         
         if ($result) {

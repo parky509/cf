@@ -32,12 +32,33 @@ class CFI_Auth {
         add_filter('logout_redirect', array($this, 'custom_logout_redirect'), 10, 3);
         add_filter('wp_logout_url', array($this, 'custom_logout_url'), 10, 2);
     }
+
+    /**
+     * Get the front-end login URL
+     */
+    private function get_login_url() {
+        $login_slugs = array('sign-in', 'cfi-login', 'login');
+        foreach ($login_slugs as $slug) {
+            $page = get_page_by_path($slug);
+            if ($page) {
+                return get_permalink($page->ID);
+            }
+        }
+        return home_url('/sign-in/');
+    }
+
+    /**
+     * Get logout redirect URL
+     */
+    private function get_logout_redirect_url() {
+        return add_query_arg('logout', '1', $this->get_login_url());
+    }
     
     /**
      * Custom logout redirect - always go to /sign-in/
      */
     public function custom_logout_redirect($redirect_to, $requested_redirect_to, $user) {
-        return home_url('/sign-in/?logout=1');
+        return $this->get_logout_redirect_url();
     }
     
     /**
@@ -55,10 +76,11 @@ class CFI_Auth {
         $username = isset($_POST['username']) ? sanitize_user($_POST['username']) : '';
         $password = isset($_POST['password']) ? $_POST['password'] : '';
         $remember = isset($_POST['remember']) && $_POST['remember'] === '1';
+        $login_url = $this->get_login_url();
         
         // Validate
         if (empty($username) || empty($password)) {
-            wp_safe_redirect(home_url('/sign-in/?error=empty'));
+            wp_safe_redirect(add_query_arg('error', 'empty', $login_url));
             exit;
         }
         
@@ -72,14 +94,14 @@ class CFI_Auth {
         $user = wp_signon($creds, is_ssl());
         
         if (is_wp_error($user)) {
-            wp_safe_redirect(home_url('/sign-in/?error=invalid'));
+            wp_safe_redirect(add_query_arg('error', 'invalid', $login_url));
             exit;
         }
         
         // Check access
         if (!$this->user_has_cfi_access($user)) {
             wp_logout();
-            wp_safe_redirect(home_url('/sign-in/?error=access'));
+            wp_safe_redirect(add_query_arg('error', 'access', $login_url));
             exit;
         }
         
@@ -93,7 +115,7 @@ class CFI_Auth {
      */
     public function handle_logout() {
         wp_logout();
-        wp_safe_redirect(home_url('/sign-in/?logout=1'));
+        wp_safe_redirect($this->get_logout_redirect_url());
         exit;
     }
     

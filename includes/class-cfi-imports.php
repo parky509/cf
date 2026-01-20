@@ -32,6 +32,10 @@ class CFI_Imports {
             if ($quantity <= 0) {
                 continue;
             }
+
+            if ($sender === '' || $driver_name === '') {
+                return false;
+            }
             
             $wpdb->insert(
                 $table,

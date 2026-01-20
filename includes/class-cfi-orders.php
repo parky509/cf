@@ -70,6 +70,7 @@ class CFI_Orders {
             array(
                 'order_number' => $order_number,
                 'order_type' => $data['order_type'],
+                'customer_name' => $data['customer_name'] ?? '',
                 'total_quantity' => $data['total_quantity'],
                 'total_amount' => $data['total_amount'],
                 'discount_amount' => $data['discount_amount'],
@@ -85,7 +86,7 @@ class CFI_Orders {
                 'status' => 'completed',
                 'sync_status' => 'synced',
             ),
-            array('%s', '%s', '%f', '%f', '%f', '%f', '%s', '%f', '%f', '%s', '%d', '%d', '%s', '%s', '%s', '%s')
+            array('%s', '%s', '%s', '%f', '%f', '%f', '%f', '%s', '%f', '%f', '%s', '%d', '%d', '%s', '%s', '%s', '%s')
         );
         
         if (!$result) {
